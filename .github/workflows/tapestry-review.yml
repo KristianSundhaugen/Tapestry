@@ -1,0 +1,103 @@
+# Tapestry: CI safety net for every pull request.
+#
+# 1. Deterministic checks: the project's own commands from .tapestry/config.json,
+#    plus gitleaks and semgrep. These block the merge.
+# 2. Claude code review in CI via the official claude-code-action, posting inline
+#    comments with the bundled /code-review skill. Advisory: it does not block.
+#
+# Required secret: ANTHROPIC_API_KEY (or run /install-github-app in Claude Code, which
+# creates CLAUDE_CODE_OAUTH_TOKEN; then swap the input below).
+# Disable the review job by setting review.ciReviewWorkflow to false in config.json
+# and deleting the job, or by removing the secret (the job is skipped without it).
+
+name: tapestry-review
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  id-token: write
+
+concurrency:
+  group: tapestry-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: deterministic checks
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Read Tapestry config
+        id: cfg
+        run: |
+          for k in install lint typecheck test build; do
+            v="$(python3 -c "import json;print(json.load(open('.tapestry/config.json'))['commands'].get('$k',''))")"
+            echo "$k=$v" >> "$GITHUB_OUTPUT"
+          done
+
+      # Add your toolchain setup here (actions/setup-node, setup-python, ...).
+      # Tapestry is language-agnostic, so it does not guess.
+
+      - name: install
+        if: steps.cfg.outputs.install != ''
+        run: ${{ steps.cfg.outputs.install }}
+      - name: lint
+        if: steps.cfg.outputs.lint != ''
+        run: ${{ steps.cfg.outputs.lint }}
+      - name: typecheck
+        if: steps.cfg.outputs.typecheck != ''
+        run: ${{ steps.cfg.outputs.typecheck }}
+      - name: test
+        if: steps.cfg.outputs.test != ''
+        run: ${{ steps.cfg.outputs.test }}
+      - name: build
+        if: steps.cfg.outputs.build != ''
+        run: ${{ steps.cfg.outputs.build }}
+
+      - name: gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Personal accounts run free; organisation repos need GITLEAKS_LICENSE (see gitleaks-action README).
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+
+      - name: semgrep
+        run: |
+          pipx install semgrep >/dev/null 2>&1 || pip install --user semgrep
+          semgrep --config auto --error --quiet --metrics=off \
+            --baseline-commit "${{ github.event.pull_request.base.sha }}" .
+
+  claude-review:
+    name: claude code review (advisory)
+    runs-on: ubuntu-latest
+    needs: checks
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: Check for API key
+        id: key
+        run: echo "present=${{ secrets.ANTHROPIC_API_KEY != '' }}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4
+        if: steps.key.outputs.present == 'true'
+        with:
+          fetch-depth: 0
+
+      - uses: anthropics/claude-code-action@v1
+        if: steps.key.outputs.present == 'true'
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # For OAuth setup via /install-github-app use instead:
+          # claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            /code-review --comment ${{ github.repository }}/pull/${{ github.event.pull_request.number }}
+            Follow REVIEW.md in the repository root. Report only findings you can cite with file:line.
+          claude_args: '--allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr *),Read,Grep,Glob" --max-turns 40'

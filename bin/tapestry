@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# Thin wrapper that launches Claude Code with the right Tapestry command.
+#
+#   bin/tapestry setup                       interactive project onboarding
+#   bin/tapestry new "idea"                  create a feature folder
+#   bin/tapestry interview <id>              stage 1 (interactive)
+#   bin/tapestry plan <id>                   stage 2
+#   bin/tapestry run <id> [--wave N]         stages 3+4
+#   bin/tapestry review <pr>                 review one PR
+#   bin/tapestry learn <id>                  stage 5
+#   bin/tapestry status [id]                 print status (no Claude session)
+#   bin/tapestry doctor                      environment check (no Claude session)
+#
+# Add --headless to run non-interactively (claude -p) where that makes sense
+# (plan, run, review, learn). Interview and setup always need a human.
+set -euo pipefail
+
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cmd="${1:-}"; shift || true
+
+headless=0
+args=()
+for a in "$@"; do
+  if [ "$a" = "--headless" ]; then headless=1; else args+=("$a"); fi
+done
+
+launch() {
+  # $1 = slash command line
+  cd "$here"
+  if [ "$headless" -eq 1 ]; then
+    exec claude -p "$1" --permission-mode acceptEdits --output-format text
+  else
+    exec claude "$1"
+  fi
+}
+
+case "$cmd" in
+  setup)     headless=0; launch "/tapestry-setup" ;;
+  new)       headless=0; launch "/tapestry-new ${args[*]:-}" ;;
+  interview) headless=0; launch "/tapestry-interview ${args[*]:-}" ;;
+  plan)      launch "/tapestry-plan ${args[*]:-}" ;;
+  run)       launch "/tapestry-run ${args[*]:-}" ;;
+  review)    launch "/tapestry-review ${args[*]:-}" ;;
+  learn)     launch "/tapestry-learn ${args[*]:-}" ;;
+  status)    exec "$here/scripts/tapestry-status.sh" "${args[@]:-}" ;;
+  doctor)    exec "$here/scripts/tapestry-doctor.sh" ;;
+  ""|-h|--help|help) sed -n '2,15p' "$0" | sed 's/^# \{0,1\}//' ;;
+  *) echo "unknown command: $cmd (try: bin/tapestry help)" >&2; exit 1 ;;
+esac

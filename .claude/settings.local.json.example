@@ -1,0 +1,13 @@
+{
+  "_comment": "Personal overrides, not committed. Copy to .claude/settings.local.json. Example: let agents run your package manager without prompts.",
+  "permissions": {
+    "allow": [
+      "Bash(npm *)",
+      "Bash(npx *)",
+      "Bash(pnpm *)",
+      "Bash(pytest*)",
+      "Bash(go test*)",
+      "Bash(cargo *)"
+    ]
+  }
+}

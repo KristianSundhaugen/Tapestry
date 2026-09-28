@@ -1,0 +1,30 @@
+# Tapestry
+.claude/worktrees/
+.claude/settings.local.json
+.claude/agent-memory-local/
+CLAUDE.local.md
+.tapestry/reviews/*.tmp
+
+# OS / editors
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/*
+!.vscode/settings.json
+
+# Secrets (agents are denied reading these too; see .claude/settings.json)
+.env
+.env.*
+*.pem
+*.key
+
+# Common build output — extend for your stack
+node_modules/
+dist/
+build/
+__pycache__/
+*.pyc
+.venv/
+target/
+coverage/

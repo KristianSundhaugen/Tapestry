@@ -1,0 +1,17 @@
+{
+  "name": "tapestry",
+  "displayName": "Tapestry",
+  "version": "0.1.0",
+  "description": "Multi-agent development pipeline: idea -> interview -> plan -> parallel PRs -> self-applying review -> learnings.",
+  "author": { "name": "Kristian Sundhaugen" },
+  "repository": "https://github.com/KristianSundhaugen/Tapestry",
+  "license": "MIT",
+  "keywords": ["pipeline", "agents", "code-review", "planning"],
+  "skills": ["./.claude/skills/"],
+  "agents": [
+    "./.claude/agents/planner.md",
+    "./.claude/agents/implementer.md",
+    "./.claude/agents/reviewer.md",
+    "./.claude/agents/librarian.md"
+  ]
+}

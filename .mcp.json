@@ -1,0 +1,4 @@
+{
+  "_comment": "Tapestry ships with no MCP servers on purpose: the pipeline uses the gh CLI, git, and local scanners, which cost far fewer tokens than MCP tool definitions. Opt-in servers are documented in docs/TOOLING.md; copy an entry from there into mcpServers when you need it.",
+  "mcpServers": {}
+}
