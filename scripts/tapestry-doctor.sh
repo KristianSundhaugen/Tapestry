@@ -2,6 +2,10 @@
 # Check the environment Tapestry needs. Never fails hard; prints OK / WARN / MISSING per item.
 set -uo pipefail
 
+# Windows (Git Bash) often has only "python"; Linux/macOS have python3.
+PY="$(command -v python3 || command -v python || true)"
+[ -z "$PY" ] && { echo "python3 or python is required" >&2; exit 1; }
+
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ok()   { printf '  OK       %s\n' "$1"; }
 warn() { printf '  WARN     %s\n' "$1"; }
@@ -31,9 +35,9 @@ fi
 
 echo "config:"
 if [ -f "$here/.tapestry/config.json" ]; then
-  name="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["project"].get("name",""))' "$here/.tapestry/config.json" 2>/dev/null || true)"
+  name="$("$PY" -c 'import json,sys; print(json.load(open(sys.argv[1]))["project"].get("name",""))' "$here/.tapestry/config.json" 2>/dev/null || true)"
   [ -n "$name" ] && ok "project '$name'" || warn ".tapestry/config.json not filled in: run /tapestry-setup"
-  test_cmd="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["commands"].get("test",""))' "$here/.tapestry/config.json" 2>/dev/null || true)"
+  test_cmd="$("$PY" -c 'import json,sys; print(json.load(open(sys.argv[1]))["commands"].get("test",""))' "$here/.tapestry/config.json" 2>/dev/null || true)"
   [ -n "$test_cmd" ] && ok "test command: $test_cmd" || warn "no test command configured; agents cannot prove work until there is one"
 else
   miss ".tapestry/config.json"

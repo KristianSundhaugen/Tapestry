@@ -6,8 +6,12 @@
 # and CI catch them).
 set -uo pipefail
 
+# Windows (Git Bash) often has only "python"; Linux/macOS have python3.
+PY="$(command -v python3 || command -v python || true)"
+[ -z "$PY" ] && exit 0
+
 input="$(cat)"
-file="$(printf '%s' "$input" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("tool_input",{}).get("file_path",""))' 2>/dev/null || true)"
+file="$(printf '%s' "$input" | "$PY" -c 'import json,sys; print(json.load(sys.stdin).get("tool_input",{}).get("file_path",""))' 2>/dev/null || true)"
 [ -z "$file" ] && exit 0
 [ -f "$file" ] || exit 0
 
@@ -15,7 +19,7 @@ project_dir="${CLAUDE_PROJECT_DIR:-$(pwd)}"
 config="$project_dir/.tapestry/config.json"
 [ -f "$config" ] || exit 0
 
-fmt="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["commands"].get("format",""))' "$config" 2>/dev/null || true)"
+fmt="$("$PY" -c 'import json,sys; print(json.load(open(sys.argv[1]))["commands"].get("format",""))' "$config" 2>/dev/null || true)"
 [ -z "$fmt" ] && exit 0
 
 # Only format source files, never Tapestry artifacts or markdown.

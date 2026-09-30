@@ -4,6 +4,10 @@
 # Prints the new feature id on the last line.
 set -euo pipefail
 
+# Windows (Git Bash) often has only "python"; Linux/macOS have python3.
+PY="$(command -v python3 || command -v python || true)"
+[ -z "$PY" ] && { echo "python3 or python is required" >&2; exit 1; }
+
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 features="$here/.tapestry/features"
 templates="$here/.tapestry/templates"
@@ -36,11 +40,11 @@ mkdir -p "$dir/tasks" "$dir/reviews"
 today="$(date +%Y-%m-%d)"
 now="$(date '+%Y-%m-%d %H:%M')"
 title="$(printf '%s' "$idea" | cut -c1-80)"
-base_branch="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["project"].get("baseBranch","main"))' "$here/.tapestry/config.json" 2>/dev/null || echo main)"
+base_branch="$("$PY" -c 'import json,sys; print(json.load(open(sys.argv[1]))["project"].get("baseBranch","main"))' "$here/.tapestry/config.json" 2>/dev/null || echo main)"
 
 fill() {
   # $1 template, $2 destination
-  python3 - "$1" "$2" "$id" "$title" "$today" "$now" "$idea" "$base_branch" <<'PY'
+  "$PY" - "$1" "$2" "$id" "$title" "$today" "$now" "$idea" "$base_branch" <<'PY'
 import sys
 src, dst, fid, title, today, now, idea, base = sys.argv[1:9]
 text = open(src, encoding="utf-8").read()

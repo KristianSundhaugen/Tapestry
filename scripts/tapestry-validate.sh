@@ -5,10 +5,14 @@
 # Exit 0 when valid, 1 with a list of problems otherwise.
 set -uo pipefail
 
+# Windows (Git Bash) often has only "python"; Linux/macOS have python3.
+PY="$(command -v python3 || command -v python || true)"
+[ -z "$PY" ] && { echo "python3 or python is required" >&2; exit 1; }
+
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 if [ "${1:-}" = "--config" ]; then
-  python3 - "$here/.tapestry/config.json" "$here/.tapestry/config.schema.json" <<'PY'
+  "$PY" - "$here/.tapestry/config.json" "$here/.tapestry/config.schema.json" <<'PY'
 import json, sys
 cfg = json.load(open(sys.argv[1])); schema = json.load(open(sys.argv[2]))
 errors = []
@@ -48,7 +52,7 @@ if [ ! -d "$dir" ]; then
   exit 1
 fi
 
-python3 - "$dir" <<'PY'
+"$PY" - "$dir" <<'PY'
 import glob, os, re, sys
 d = sys.argv[1]
 errors = []

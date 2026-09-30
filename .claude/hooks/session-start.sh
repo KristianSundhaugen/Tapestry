@@ -5,6 +5,10 @@
 # is blocked. Output becomes context for Claude.
 set -uo pipefail
 
+# Windows (Git Bash) often has only "python"; Linux/macOS have python3.
+PY="$(command -v python3 || command -v python || true)"
+[ -z "$PY" ] && exit 0
+
 project_dir="${CLAUDE_PROJECT_DIR:-$(pwd)}"
 features="$project_dir/.tapestry/features"
 config="$project_dir/.tapestry/config.json"
@@ -12,7 +16,7 @@ config="$project_dir/.tapestry/config.json"
 [ -d "$features" ] || exit 0
 
 if [ -f "$config" ]; then
-  name="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["project"].get("name",""))' "$config" 2>/dev/null || true)"
+  name="$("$PY" -c 'import json,sys; print(json.load(open(sys.argv[1]))["project"].get("name",""))' "$config" 2>/dev/null || true)"
   if [ -z "$name" ]; then
     echo "Tapestry: project not configured yet. Run /tapestry-setup first."
   fi

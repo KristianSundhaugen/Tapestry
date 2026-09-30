@@ -11,8 +11,12 @@
 # Reads the hook JSON on stdin; needs python3 (present wherever Claude Code runs).
 set -euo pipefail
 
+# Windows (Git Bash) often has only "python"; Linux/macOS have python3.
+PY="$(command -v python3 || command -v python || true)"
+[ -z "$PY" ] && exit 0
+
 input="$(cat)"
-cmd="$(printf '%s' "$input" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("tool_input",{}).get("command",""))' 2>/dev/null || true)"
+cmd="$(printf '%s' "$input" | "$PY" -c 'import json,sys; print(json.load(sys.stdin).get("tool_input",{}).get("command",""))' 2>/dev/null || true)"
 [ -z "$cmd" ] && exit 0
 
 project_dir="${CLAUDE_PROJECT_DIR:-$(pwd)}"
@@ -21,8 +25,8 @@ config="$project_dir/.tapestry/config.json"
 base_branch="main"
 protected="main master develop"
 if [ -f "$config" ]; then
-  base_branch="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["project"].get("baseBranch","main"))' "$config" 2>/dev/null || echo main)"
-  protected="$(python3 -c 'import json,sys; print(" ".join(json.load(open(sys.argv[1]))["git"].get("protectedBranches",["main","master","develop"])))' "$config" 2>/dev/null || echo "main master develop")"
+  base_branch="$("$PY" -c 'import json,sys; print(json.load(open(sys.argv[1]))["project"].get("baseBranch","main"))' "$config" 2>/dev/null || echo main)"
+  protected="$("$PY" -c 'import json,sys; print(" ".join(json.load(open(sys.argv[1]))["git"].get("protectedBranches",["main","master","develop"])))' "$config" 2>/dev/null || echo "main master develop")"
 fi
 
 block() {
@@ -35,7 +39,7 @@ if printf '%s' "$cmd" | grep -Eq '(AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36}|sk-[A-Za
   block "the command contains something that looks like a real credential."
 fi
 
-cwd="$(printf '%s' "$input" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("cwd",""))' 2>/dev/null || true)"
+cwd="$(printf '%s' "$input" | "$PY" -c 'import json,sys; print(json.load(sys.stdin).get("cwd",""))' 2>/dev/null || true)"
 
 # Split into segments on &&, ||, ;, |  (newlines too).
 while IFS= read -r seg; do
@@ -72,6 +76,6 @@ while IFS= read -r seg; do
       fi
       ;;
   esac
-done < <(printf '%s' "$cmd" | python3 -c 'import re,sys; print("\n".join(re.split(r"&&|\|\||;|\||\n", sys.stdin.read())))')
+done < <(printf '%s' "$cmd" | "$PY" -c 'import re,sys; print("\n".join(re.split(r"&&|\|\||;|\||\n", sys.stdin.read())))')
 
 exit 0

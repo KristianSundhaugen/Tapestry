@@ -1,0 +1,6 @@
+# Shell scripts and hooks must keep LF line endings, or bash on Windows (Git Bash) fails on the shebang.
+*.sh          text eol=lf
+bin/tapestry  text eol=lf
+*.md          text
+*.json        text
+*.yml         text

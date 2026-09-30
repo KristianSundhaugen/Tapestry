@@ -95,6 +95,16 @@ Recommended branch protection on the base branch: require the `deterministic che
 
 Tapestry's own files are under `.claude/`, `.tapestry/templates/`, `scripts/`, `bin/`, `docs/`. Your project's state is under `.tapestry/config.json`, `.tapestry/knowledge/`, `.tapestry/features/`, `.claude/rules/project/`, `.claude/agent-memory/`. To upgrade, pull the framework files from the `tapestry` remote and review the diff; the state directories are never touched by an upgrade.
 
+## Windows notes
+
+Tapestry works on Windows through Git Bash, which Claude Code needs anyway.
+
+- Install [Git for Windows](https://git-scm.com/download/win) (provides Git Bash), Python 3 from python.org (tick *Add to PATH*; the Microsoft Store stub does not count), and `gh` (`winget install GitHub.cli`, then `gh auth login`).
+- Run `scripts/setup.sh` and `bin/tapestry` from Git Bash, not PowerShell. Hooks and scripts detect `python` when `python3` is absent.
+- Line endings: `.gitattributes` pins the scripts to LF. If you cloned before that file existed, run `git rm --cached -r . && git reset --hard` once in Git Bash.
+- Avoid putting the repository inside a OneDrive, Dropbox or iCloud folder. Git worktrees under `.claude/worktrees/` create and delete thousands of files during a run, and sync clients are known to corrupt `.git` while syncing them. If you must, exclude the folder from sync (OneDrive: *Settings → Sync and backup → Manage backup*, or right-click → *Free up space* is not enough; use *Choose folders* to deselect it) or set `worktree.baseRef` aside and run with `maxParallelImplementers: 1`.
+- `chmod +x` has no effect on NTFS; Git Bash runs the scripts by their shebang, so nothing else is needed.
+
 ## Troubleshooting
 
 - **"you are on the base branch" when committing** — the guard hook stopped a commit on `main`. Create a branch. If you are the orchestrator committing the ledger, include `.tapestry` in the command (`git commit -m "chore(tapestry): …"`).
