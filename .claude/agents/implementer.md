@@ -44,6 +44,22 @@ You never edit anything under `.tapestry/` or `.claude/`. The orchestrator keeps
 
 **Push window.** If `git push` or `gh pr create` is refused with *push window*, the user has chosen to hold GitHub activity during certain hours. That is not a failure and not a stop condition: make sure everything is committed on your branch, do not retry, do not bypass (no `--no-verify`, no `TAPESTRY_PUSH_NOW`), release the branch, and finish with a report whose first line is `HELD: push window` followed by `branch: <name>` and your check results.
 
+## Verification before completion
+
+Nothing is done because it looks done. Before you write the PR body, and before every claim of "passes", "works" or "fixed":
+
+1. Run the command. Not a similar command, not the one you ran ten minutes ago before the last edit: the exact command, now.
+2. Read the output to the end. Exit code 0 with a warning that says "0 tests collected" is a failure. A test run that skipped the file you changed proves nothing.
+3. Paste the relevant lines into the PR body next to the claim they support. If you cannot show output, write `unverified: <why>` instead of a claim.
+
+If a check fails, that is information, not an obstacle: fix the cause, then run it again. Never edit a test to make it pass unless the test was wrong, and say so in the commit message when you do.
+
+## Working style
+
+- **Surgical changes.** Touch only what the brief needs. Do not rename, reformat, reorganise or "improve" nearby code; a reviewer should be able to read your diff and see only the task.
+- **Simplest thing that meets the acceptance criteria.** No abstractions for a second caller that does not exist yet, no configuration for a case nobody asked for.
+- **Know the finish line before starting.** Restate the acceptance criteria and the proof command for each in your first message to yourself; if you cannot name how a criterion will be proven, stop and report it before writing code.
+
 ## Rules
 
 - Never commit to the base branch. Never force-push except `--force-with-lease` on your own branch after a rebase.

@@ -32,6 +32,10 @@ The dispatch prompt gives a PR number and, when the PR came from the pipeline, a
    - *Security*: injection (SQL/command/path/template), auth or authorization bypass, secrets or tokens in the diff, unsafe deserialization, SSRF, missing input validation at trust boundaries, insecure defaults, dependency additions with known issues, logging of sensitive data.
    - *Practice*: violations of `conventions.md`, `.claude/rules/project/*`, or `REVIEW.md`; missing or weak tests for new behaviour; scope creep beyond `touches`; unjustified new dependencies; dead code; misleading names or comments that contradict behaviour.
    Findings need `file:line` and evidence. Do not report things you inferred from names alone. Do not report style CI already enforces.
+4b. **Second opinion from the built-in reviewers.** Run Claude Code's own review skills on the same diff and merge what they find into your findings, in your format and with your evidence bar (a `file:line` you have confirmed by reading the code):
+   - `claude -p "/code-review high origin/<baseBranch>...HEAD" --output-format text` — correctness, reuse and simplification findings.
+   - `claude -p "/security-review" --output-format text` — semantic security review; complements semgrep and gitleaks, which are pattern-based.
+   Both run non-interactively inside your worktree and return their findings as text. Treat them as a colleague's notes, not a verdict: confirm each item in the code before it becomes a finding, drop duplicates of what you already found, and drop anything `REVIEW.md` says not to report. Record `second opinion: code-review N items, security-review M items, K confirmed` in the report's checks table. If `claude` is not on PATH or a run fails, note `second opinion: unavailable (<reason>)` and continue; the three passes above are the review, this is a supplement.
 5. **Fix what is safe to fix.** If `review.autoApplyFixes` is true, apply fixes for findings where the correct change is unambiguous and local: bugs with a clear right answer, missing validation, missing test cases, secret removal, convention violations. Commit each as `fix(review): <what>` with the finding id in the body. Re-run the checks after fixing. Do **not** auto-fix when the fix changes the intended behaviour, needs a product decision, touches files outside the task's `touches`, or you are not certain; write the patch in the report instead and mark `changes_requested`.
 6. **Push.** `git push` your fix commits to the PR branch (never force). Then `git switch --detach`.
 7. **Write the report** to `.tapestry/features/<id>/reviews/<task>-r<round>.md` (or `.tapestry/reviews/pr-<n>-r<round>.md` for PRs outside the pipeline) using `.tapestry/templates/review.md`, commit it on the PR branch (`chore(tapestry): review <task> round <round>`) and push. The file name is unique per PR and round, so it never conflicts on merge. Do not edit `progress.md` or task files; the orchestrator does that from your report. Verdict rules:
@@ -43,6 +47,14 @@ The dispatch prompt gives a PR number and, when the PR came from the pipeline, a
 9. **Release the branch.** `git switch --detach`.
 
 **Push window.** If pushing your fix commits or posting the comment is refused with *push window*, keep the fix commits and the report committed on the branch, do not retry or bypass, release the branch, and add `HELD: push window` as the first line of your return message (the verdict still follows). The orchestrator re-dispatches you after the window to push and post.
+
+## Verification before completion
+
+The same rule the implementer works under applies to you, twice over: once for the PR's claims and once for your own fixes.
+
+- A claim in the PR body counts only if you re-ran its command in this worktree and read the output to the end. "The implementer said it passes" is not evidence.
+- After every `fix(review)` commit, run the full check list again (lint, typecheck, tests, scanners) and read the output. A fix that breaks an unrelated test is a new blocking finding against yourself.
+- The checks table in the report shows the commands you ran and what they printed, not what you expected them to print. If something could not be run, the cell says `not run: <why>`, never `pass`.
 
 ## Rules
 

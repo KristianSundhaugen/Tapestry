@@ -32,6 +32,12 @@ This repository uses **Tapestry**, a multi-agent development pipeline for Claude
 6. On Windows, run `scripts/*.sh` through the Bash tool (Git Bash); the `.ps1` twins are for the human's PowerShell terminal.
 7. Small change (roughly under `pipeline.skipPipelineBelowLines` lines, one sentence to describe)? Skip the pipeline, do it directly on a branch, open a PR, run `/tapestry-review`.
 
+## Review calibration
+
+The reviewer agent and Claude Code's built-in `/code-review` both follow the rules in `REVIEW.md`, imported here so a single file is the source of truth:
+
+@REVIEW.md
+
 ## Project notes
 
 <!-- /tapestry-setup writes a short project summary below this line. Keep it under 20 lines; details go in .tapestry/knowledge/. -->

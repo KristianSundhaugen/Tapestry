@@ -37,6 +37,7 @@ Each finding has a severity, a location, a claim with evidence, and what was don
 | typecheck | | |
 | semgrep | | |
 | gitleaks | | |
+| second opinion | `/code-review high`, `/security-review` | N + M items, K confirmed / unavailable |
 | acceptance criteria | see task file | T1 ✓ T2 ✓ |
 
 ## Scope check

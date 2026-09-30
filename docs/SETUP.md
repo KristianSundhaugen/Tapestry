@@ -157,6 +157,10 @@ pip install semgrep                    # optional, reviewer scanner
   ```
 - **OneDrive.** Avoid keeping the repository in a OneDrive, Dropbox or iCloud folder: worktrees under `.claude\worktrees\` create and delete many files during a run, and sync clients are known to corrupt `.git` while syncing. Prefer `C:\Users\<you>\Projects`, or exclude the folder from sync.
 
+## Maintaining Tapestry's own skills
+
+The `/tapestry-*` commands are ordinary Claude Code skills under `.claude/skills/`. To change one with some rigour, install Anthropic's `skill-creator` (`/plugin marketplace add anthropics/skills`, then `/plugin install skill-creator@anthropic-agent-skills`) and ask it to review or evaluate the skill; it can run before/after comparisons so a prompt change is measured, not guessed. It is a maintainer's tool, not something a Tapestry user needs.
+
 ## Troubleshooting
 
 - **"you are on the base branch" when committing** — the guard hook stopped a commit on `main`. Create a branch. If you are the orchestrator committing the ledger, include `.tapestry` in the command (`git commit -m "chore(tapestry): …"`).

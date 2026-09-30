@@ -180,6 +180,9 @@ for s in scanners:
     reported = s in review_scanner_fields     # e.g. "gitleaks: not installed" in the report frontmatter
     check("4 review", f"reviewer ran {s} or reported it missing", bool(ran) or reported,
           f"{len(ran)} run(s); review frontmatter: {review_scanner_fields[:120] or '(empty)'}", skip=not has_trace and not reviews)
+second = [c for c in cmds("reviewer") if "/code-review" in c or "/security-review" in c]
+check("4 review", "reviewer ran the built-in second opinion (/code-review, /security-review)", bool(second) or any("second opinion" in read(r) for r in reviews),
+      f"{len(second)} run(s)", skip=not has_trace and not reviews)
 fixes = [c for c in cmds("reviewer") if "fix(review)" in c]
 check("4 review", "reviewer applied fixes itself when needed (informational)", True, f"{len(fixes)} fix(review) commit command(s)", skip=not has_trace)
 main_src_edits, in_run = [], False

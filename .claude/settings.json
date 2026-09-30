@@ -65,7 +65,9 @@
       "PowerShell(gh issue*)",
       "PowerShell(gh repo view*)",
       "PowerShell(./scripts/*.ps1*)",
-      "PowerShell(.\\scripts\\*.ps1*)"
+      "PowerShell(.\\scripts\\*.ps1*)",
+      "Bash(claude -p *)",
+      "PowerShell(claude -p *)"
     ],
     "deny": [
       "Read(.env)",

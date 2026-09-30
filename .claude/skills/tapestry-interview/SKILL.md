@@ -33,9 +33,23 @@ Techniques that work: reflect back a proposed decision and ask for a yes/no; ask
 
 Techniques to avoid: asking more than three things at once; asking what the codebase can answer; asking for implementation details the planner should decide.
 
+## The grill: resolve every open branch
+
+The structured pass fills in what the template asks for. This pass hunts for what it did not ask. Run it after the eight topics, before writing anything. Skip it only when the user says the feature is small, and say that you are skipping it.
+
+Rules:
+
+1. **One question at a time**, each with your recommended answer and the reason for it, so the user can accept with one word or correct you. Use `AskUserQuestion` with the recommendation as the first option.
+2. **Look up before you ask.** If the codebase, `config.json`, or the knowledge files can answer it, read them and state the answer instead of asking.
+3. **Hunt decision branches, not template gaps.** Each question is about a fork where two reasonable implementations would differ: who calls this and from where; what happens on the second call, the empty call, the concurrent call; what the caller sees on each failure; what is persisted and for how long; what must stay backward compatible; what is deliberately left ugly for now; what would make the user reject the result even though every acceptance criterion passes.
+4. **Stop when a full pass produces no new branch**, or after twelve questions, whichever comes first. If branches remain at twelve, list them as assumptions with your recommended default and move on; do not keep going.
+5. Every grill answer becomes a line in the *Constraints and decisions* or *Assumptions* section of the spec, with the reason. Nothing from the grill lives only in the transcript.
+
+Do not generate code or designs during the grill, and do not re-ask anything the structured pass settled.
+
 ## Writing the outputs
 
-1. Fill every section of `interview.md`. Unanswered questions go to *Open questions* with a working assumption. Keep the *Interview log* short: question → answer, one line each. Set `stage: interviewed` in `progress.md` and append `interviewer  interviewed  N questions, M open`.
+1. Fill every section of `interview.md`. Unanswered questions go to *Open questions* with a working assumption. Keep the *Interview log* short: question → answer, one line each; grill questions are marked `[grill]`. Set `stage: interviewed` in `progress.md` and append `interviewer  interviewed  N questions (M grill), K open`.
 2. Write `spec.md` from `.tapestry/templates/spec.md`: one page. Acceptance criteria are numbered `AC1…` with a *Verified by* column. Decisions carry their reason. Assumptions come from the open questions.
 3. If the interview surfaced a durable decision or a new term, add it to `.tapestry/knowledge/decisions.md` / `glossary.md` (dated, tagged with the feature id).
 4. Show the user the spec (it is short) and ask them to approve it, change it, or answer the open questions. When approved, set `status: approved` and `approved_by:` in `spec.md`, set `stage: specced` in `progress.md`, and append `interviewer  spec-approved` to the event log. If `pipeline.humanApprovesSpec` is false, approve it yourself and say so.

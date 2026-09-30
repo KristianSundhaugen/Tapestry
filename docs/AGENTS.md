@@ -70,8 +70,9 @@ Brief not self-contained · assumption contradicted by code · would need to cha
 The reviewer is the stage the brief cares most about, so its contract is spelled out:
 
 1. Deterministic first: project commands, then scanners (`semgrep`, `gitleaks`, optional `trivy`). Red deterministic checks are blocking findings.
-2. Verify the PR's own claims: every proof command in the PR body is re-run.
+2. Verify the PR's own claims: every proof command in the PR body is re-run and its output read; nothing is taken from the implementer's word.
 3. Three passes over the diff and surrounding code: correctness, security, practice. Findings need `file:line` and evidence; naming-based inferences are questions, not findings.
+3b. Second opinion: Claude Code's built-in `/code-review` and `/security-review` run on the same diff (non-interactively, in the reviewer's worktree). Their items are confirmed against the code before they become findings; `REVIEW.md` is imported into `CLAUDE.md` so both reviewers follow the same calibration.
 4. Apply safe fixes as `fix(review): …` commits; re-run checks; push. Unsafe or judgement-requiring fixes go in the report as patches with `changes_requested`.
 5. Report file from the template committed on the PR branch, PR summary comment, verdict in the return message. (No `gh pr review --approve`: GitHub rejects self-approval from the account that opened the PR; the orchestrator acts on the verdict instead.)
 
