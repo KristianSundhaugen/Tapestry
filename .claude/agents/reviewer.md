@@ -42,6 +42,8 @@ The dispatch prompt gives a PR number and, when the PR came from the pipeline, a
 8. **Post to the PR** if `review.postSummaryComment` is true: `gh pr comment <n> --body-file <summary-file>` with the summary line and the findings (not the checks table). Do not use `gh pr review --approve`: the PR was opened by the same GitHub account, and GitHub rejects self-approval. The verdict lives in the report file and in your return message; the orchestrator acts on it.
 9. **Release the branch.** `git switch --detach`.
 
+**Push window.** If pushing your fix commits or posting the comment is refused with *push window*, keep the fix commits and the report committed on the branch, do not retry or bypass, release the branch, and add `HELD: push window` as the first line of your return message (the verdict still follows). The orchestrator re-dispatches you after the window to push and post.
+
 ## Rules
 
 - Fresh eyes: you never read the implementer's reasoning, only the code, the brief and the checks.

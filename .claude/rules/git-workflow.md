@@ -65,6 +65,10 @@ Merge in wave order. After each merge, `git pull --ff-only origin <baseBranch>` 
 
 The only commits made directly on the base branch: `git add .tapestry && git commit -m "chore(tapestry): …" && git push`, containing files under `.tapestry/` only. The guard hook allows a base-branch commit only when the command mentions `tapestry`. If the repository's branch protection rejects the push, keep the commits local and tell the user; never force.
 
+## Push window (personal, optional)
+
+A developer can hold all GitHub activity during certain hours with `git.pushWindow` in `.tapestry/config.local.json` (gitignored; see `.tapestry/config.local.example.json`). While it is active, the guard hook refuses `git push` and GitHub-writing `gh` commands, and the `.githooks/pre-push` hook refuses the developer's own pushes. Local work continues: branch, commit, test. An agent that hits the window reports `HELD: push window` and stops; that is not a failure. Never bypass it (`--no-verify`, `TAPESTRY_PUSH_NOW`) unless the human asks. Check it with `scripts/push-window.sh` (exit 1 = held).
+
 ## Secrets
 
 Never commit `.env*`, keys, tokens or credentials, including in tests. `gitleaks` runs in the reviewer's checks; the pre-tool hook blocks obvious cases.

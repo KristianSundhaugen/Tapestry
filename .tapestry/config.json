@@ -29,10 +29,20 @@
   "git": {
     "branchPrefix": "tapestry",
     "commitConvention": "conventional",
-    "protectedBranches": ["main", "master", "develop"]
+    "protectedBranches": [
+      "main",
+      "master",
+      "develop"
+    ],
+    "pushWindow": {
+      "enabled": false
+    }
   },
   "review": {
-    "scanners": ["semgrep", "gitleaks"],
+    "scanners": [
+      "semgrep",
+      "gitleaks"
+    ],
     "ciReviewWorkflow": true,
     "autoApplyFixes": true,
     "postSummaryComment": true

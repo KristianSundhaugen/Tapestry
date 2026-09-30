@@ -30,7 +30,7 @@ if [ "$target" != "$src" ]; then
     exit 1
   fi
   # Directories are merged file by file without overwriting; single files are skipped if present.
-  for item in .claude .tapestry .github scripts bin; do
+  for item in .claude .tapestry .github .githooks scripts bin; do
     mkdir -p "$target/$item"
     (cd "$src/$item" && find . -type f) | while IFS= read -r f; do
       f="${f#./}"
@@ -54,12 +54,21 @@ if [ "$target" != "$src" ]; then
     cp "$src/CLAUDE.md" "$target/CLAUDE.md"; echo "  copied CLAUDE.md"
   fi
   grep -q '^.claude/worktrees' "$target/.gitignore" 2>/dev/null || {
-    printf '\n# Tapestry\n.claude/worktrees/\n.claude/settings.local.json\n.claude/agent-memory-local/\nCLAUDE.local.md\n' >> "$target/.gitignore"
+    printf '\n# Tapestry\n.claude/worktrees/\n.claude/settings.local.json\n.claude/agent-memory-local/\nCLAUDE.local.md\n.tapestry/config.local.json\n' >> "$target/.gitignore"
     echo "  updated .gitignore"
   }
 fi
 
-chmod +x "$target"/.claude/hooks/*.sh "$target"/scripts/*.sh "$target"/bin/* 2>/dev/null || true
+chmod +x "$target"/.claude/hooks/*.sh "$target"/scripts/*.sh "$target"/bin/* "$target"/.githooks/* 2>/dev/null || true
+
+# Git hooks (pre-push enforces the optional personal push window; a no-op without one).
+current_hooks="$(git -C "$target" config --get core.hooksPath || true)"
+if [ -z "$current_hooks" ]; then
+  git -C "$target" config core.hooksPath .githooks
+  echo "set git core.hooksPath=.githooks (pre-push honours your push window, if you configure one)"
+elif [ "$current_hooks" != ".githooks" ]; then
+  echo "note: core.hooksPath is already '$current_hooks'; copy .githooks/pre-push there to enable the push window for your own pushes"
+fi
 
 if [ "$keep_examples" -eq 0 ] && [ "$target" = "$src" ] && [ -d "$target/examples" ]; then
   echo "note: examples/ contains the walkthrough artifacts; delete it once you no longer need it"

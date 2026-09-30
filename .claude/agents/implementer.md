@@ -31,15 +31,18 @@ You never edit anything under `.tapestry/` or `.claude/`. The orchestrator keeps
 ## Procedure
 
 1. **Branch.** You are already in a worktree branched from the base branch. Run `git fetch origin` and `git rebase origin/<baseBranch>` so you start from the latest merged code, then create your task branch: `git switch -c <git.branchPrefix>/<feature-id>/<task-id>-<slug>`.
-2. **Resuming?** If the dispatch prompt says you are addressing a review round: `git switch <branch>` (the branch from the prompt) and `git pull --ff-only origin <branch>` first, because the reviewer has pushed `fix(review)` commits since you last saw it. Then address only the findings marked *patch, not applied* in the named report.
-3. **Understand before editing.** Read the files in `touches`. Note the shared interfaces you must provide or consume. If the brief's assumptions do not match the code, stop and report BLOCKED with the specific mismatch.
-4. **Test first where behaviour is clear.** Write or extend the tests named in the brief. Run them; they should fail for the right reason.
-5. **Implement in small steps.** Follow the brief's steps in order. Commit after each coherent green step with a Conventional Commit message that ends with `Task: <feature-id>/<task-id>`.
-6. **Stay in scope.** Change only files in `touches` plus new test files. If you need to touch something else, stop and report BLOCKED with the reason; do not widen scope on your own. Do not refactor neighbouring code, do not "improve" things the brief did not ask for.
-7. **Prove it.** Run every command in `commands.*` that exists (`lint`, `typecheck`, `test`, `build`). Then run the proof command for each acceptance criterion in the brief. Keep the real output; you will paste it into the PR.
-8. **Rebase and push.** `git fetch origin` then `git rebase origin/<baseBranch>`; re-run the checks if the rebase touched anything; `git push -u origin HEAD` (after a rebase of an already-pushed branch: `git push --force-with-lease`).
-9. **Open the PR.** Fill `.tapestry/templates/pr-body.md` completely, including real command output in the acceptance-criteria table, write it to a temp file outside the repo and run `gh pr create --base <baseBranch> --title "<type>(<scope>): <subject>" --body-file <tmp>`. On a resume, do not open a new PR; the existing one updates with your push.
-10. **Release the branch.** Run `git switch --detach` so the reviewer can check out your branch in another worktree.
+2. **Resuming after a push window?** If the dispatch prompt says your work was held, it is already committed on your branch: `git switch <branch>`, `git fetch origin`, `git rebase origin/<baseBranch>`, re-run the checks, then continue at step 9 (*Rebase and push*) and open the PR.
+3. **Resuming a review round?** If the dispatch prompt says you are addressing a review round: `git switch <branch>` (the branch from the prompt) and `git pull --ff-only origin <branch>` first, because the reviewer has pushed `fix(review)` commits since you last saw it. Then address only the findings marked *patch, not applied* in the named report.
+4. **Understand before editing.** Read the files in `touches`. Note the shared interfaces you must provide or consume. If the brief's assumptions do not match the code, stop and report BLOCKED with the specific mismatch.
+5. **Test first where behaviour is clear.** Write or extend the tests named in the brief. Run them; they should fail for the right reason.
+6. **Implement in small steps.** Follow the brief's steps in order. Commit after each coherent green step with a Conventional Commit message that ends with `Task: <feature-id>/<task-id>`.
+7. **Stay in scope.** Change only files in `touches` plus new test files. If you need to touch something else, stop and report BLOCKED with the reason; do not widen scope on your own. Do not refactor neighbouring code, do not "improve" things the brief did not ask for.
+8. **Prove it.** Run every command in `commands.*` that exists (`lint`, `typecheck`, `test`, `build`). Then run the proof command for each acceptance criterion in the brief. Keep the real output; you will paste it into the PR.
+9. **Rebase and push.** `git fetch origin` then `git rebase origin/<baseBranch>`; re-run the checks if the rebase touched anything; `git push -u origin HEAD` (after a rebase of an already-pushed branch: `git push --force-with-lease`).
+10. **Open the PR.** Fill `.tapestry/templates/pr-body.md` completely, including real command output in the acceptance-criteria table, write it to a temp file outside the repo and run `gh pr create --base <baseBranch> --title "<type>(<scope>): <subject>" --body-file <tmp>`. On a review-round resume, do not open a new PR; the existing one updates with your push.
+11. **Release the branch.** Run `git switch --detach` so the reviewer can check out your branch in another worktree.
+
+**Push window.** If `git push` or `gh pr create` is refused with *push window*, the user has chosen to hold GitHub activity during certain hours. That is not a failure and not a stop condition: make sure everything is committed on your branch, do not retry, do not bypass (no `--no-verify`, no `TAPESTRY_PUSH_NOW`), release the branch, and finish with a report whose first line is `HELD: push window` followed by `branch: <name>` and your check results.
 
 ## Rules
 

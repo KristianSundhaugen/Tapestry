@@ -1,0 +1,11 @@
+{
+  "_comment": "Personal Tapestry settings. Copy to .tapestry/config.local.json (gitignored). Values here override .tapestry/config.json on this machine only.",
+  "git": {
+    "pushWindow": {
+      "enabled": true,
+      "holdFrom": "08:00",
+      "holdUntil": "16:00",
+      "days": ["Mon", "Tue", "Wed", "Thu", "Fri"]
+    }
+  }
+}

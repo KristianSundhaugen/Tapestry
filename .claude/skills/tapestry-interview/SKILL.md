@@ -39,7 +39,7 @@ Techniques to avoid: asking more than three things at once; asking what the code
 2. Write `spec.md` from `.tapestry/templates/spec.md`: one page. Acceptance criteria are numbered `AC1…` with a *Verified by* column. Decisions carry their reason. Assumptions come from the open questions.
 3. If the interview surfaced a durable decision or a new term, add it to `.tapestry/knowledge/decisions.md` / `glossary.md` (dated, tagged with the feature id).
 4. Show the user the spec (it is short) and ask them to approve it, change it, or answer the open questions. When approved, set `status: approved` and `approved_by:` in `spec.md`, set `stage: specced` in `progress.md`, and append `interviewer  spec-approved` to the event log. If `pipeline.humanApprovesSpec` is false, approve it yourself and say so.
-5. Commit the artifacts on the base branch: `git add .tapestry && git commit -m "chore(tapestry): spec $ARGUMENTS" && git push`. If the push is rejected by branch protection, tell the user.
+5. Commit the artifacts on the base branch: `git add .tapestry && git commit -m "chore(tapestry): spec $ARGUMENTS" && git push`. If the push is rejected by branch protection, tell the user, or that it is held by their push window; the commit stays local until the next push after the window.
 6. Tell the user the next step: `/tapestry-plan $ARGUMENTS`.
 
 Do not write any code, and do not start planning. If the idea turns out to be tiny, say so and offer the quick path.

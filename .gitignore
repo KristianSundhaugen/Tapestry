@@ -4,6 +4,7 @@
 .claude/agent-memory-local/
 CLAUDE.local.md
 .tapestry/reviews/*.tmp
+.tapestry/config.local.json
 
 # OS / editors
 .DS_Store

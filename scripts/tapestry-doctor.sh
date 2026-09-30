@@ -61,6 +61,15 @@ command -v semgrep  >/dev/null 2>&1 && ok "semgrep"  || warn "semgrep not instal
 command -v gitleaks >/dev/null 2>&1 && ok "gitleaks" || warn "gitleaks not installed (brew install gitleaks | https://github.com/gitleaks/gitleaks/releases)"
 command -v trivy    >/dev/null 2>&1 && ok "trivy"    || warn "trivy not installed    (only needed for container/IaC projects)"
 
+echo "push window:"
+hp="$(git -C "$here" config --get core.hooksPath || true)"
+[ "$hp" = ".githooks" ] && ok "git pre-push hook active (core.hooksPath=.githooks)" || warn "git pre-push hook not active: git config core.hooksPath .githooks"
+if [ -f "$here/.tapestry/config.local.json" ]; then
+  if wmsg="$(bash "$here/scripts/push-window.sh")"; then ok "configured; GitHub activity allowed right now"; else ok "configured; HELD right now — $wmsg"; fi
+else
+  ok "not configured (optional: cp .tapestry/config.local.example.json .tapestry/config.local.json)"
+fi
+
 echo "hooks:"
 for h in guard-bash.sh post-edit-format.sh session-start.sh; do
   if [ -x "$here/.claude/hooks/$h" ]; then ok "$h executable"; else warn "$h not executable: chmod +x .claude/hooks/$h"; fi

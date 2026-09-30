@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Tapestry git pre-push hook: refuses pushes inside your personal push window
+# (git.pushWindow in .tapestry/config.local.json). Does nothing if no window is configured.
+# Installed by scripts/setup.sh via: git config core.hooksPath .githooks
+# Override once: TAPESTRY_PUSH_NOW=1 git push
+root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+check="$root/scripts/push-window.sh"
+[ -f "$check" ] || exit 0
+if ! msg="$(bash "$check")"; then
+  echo "Tapestry: push refused. $msg" >&2
+  echo "Override once: TAPESTRY_PUSH_NOW=1 git push" >&2
+  exit 1
+fi
+exit 0

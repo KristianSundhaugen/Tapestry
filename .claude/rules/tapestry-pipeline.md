@@ -53,6 +53,8 @@ Why the orchestrator owns the ledger: parallel branches that each append to `pro
 
 ## Stop conditions
 
+A refusal by the personal push window is **not** a stop condition for blocking: agents report `HELD: push window` and the orchestrator resumes after the window (see `/tapestry-run`).
+
 Agents stop and write to **Blocked / needs human** when: a spec assumption is wrong; a task would need to change files outside `touches`; a check cannot be run and the task has no other proof; a review reached `pipeline.maxReviewRounds`; a rebase failed `pipeline.maxRebaseAttempts` times; or anything would require force-pushing a protected branch.
 
 ## Context hygiene

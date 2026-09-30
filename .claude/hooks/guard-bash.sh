@@ -52,10 +52,35 @@ fi
 
 cwd="$(printf '%s' "$input" | "$PY" -c 'import json,sys; print(json.load(sys.stdin).get("cwd",""))' 2>/dev/null || true)"
 
+# Personal push window: is GitHub activity held right now?
+window_msg=""
+if [ -f "$project_dir/scripts/push-window.sh" ]; then
+  window_msg="$(bash "$project_dir/scripts/push-window.sh")" && window_msg=""
+fi
+hold() {
+  block "push window: $window_msg This is not a failure: leave the work committed locally, do not retry or bypass it, and report 'HELD: push window' with your branch name."
+}
+
 # Split into segments on &&, ||, ;, |  (newlines too).
 while IFS= read -r seg; do
   seg="$(printf '%s' "$seg" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
   [ -z "$seg" ] && continue
+
+  # 0. GitHub-visible activity inside the push window.
+  if [ -n "$window_msg" ]; then
+    case "$seg" in
+      git\ push*|git\ *\ push*) hold ;;
+    esac
+    if printf '%s' "$seg" | grep -Eq '^gh +(pr +(create|merge|comment|review|edit|close|reopen|ready)|issue +(create|comment|edit|close|reopen)|release +(create|edit|upload|delete)|repo +(create|edit|fork|sync)|workflow +run|run +rerun|secret +set|label +create)( |$)'; then
+      hold
+    fi
+    if printf '%s' "$seg" | grep -Eq '^gh +api( |$)' && printf ' %s' "$seg" | grep -Eq ' (-X|--method)[ =]?(POST|PATCH|PUT|DELETE)| (-f|-F|--field|--raw-field|--input)[ =]'; then
+      hold
+    fi
+    if printf '%s' "$seg" | grep -Eq 'TAPESTRY_PUSH_NOW=|--no-verify'; then
+      hold
+    fi
+  fi
 
   case "$seg" in
     git\ push*|git\ *push*)

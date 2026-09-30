@@ -4,3 +4,4 @@ bin/tapestry  text eol=lf
 *.md          text
 *.json        text
 *.yml         text
+.githooks/*    text eol=lf

@@ -79,6 +79,19 @@ Add your toolchain step (`actions/setup-node`, `setup-python`, …) where the co
 
 Recommended branch protection on the base branch: require the `deterministic checks` job for PRs, require a linear history, and disallow force pushes. Do **not** require a pull request for every push, or add a bypass for the person running the pipeline: the stage commands commit ledger files (`.tapestry/…`) straight to the base branch. If your organisation forbids that, set `pipeline.humanMergesPRs: true` and push the ledger commits yourself after each run; the skills tell you when a push was rejected.
 
+## 5b. Optional: a personal push window
+
+To keep all GitHub activity (pushes, PRs, review comments, merges) out of certain hours, for example your working day, create a personal config that is never committed:
+
+```bash
+cp .tapestry/config.local.example.json .tapestry/config.local.json   # holds Mon–Fri 08:00–16:00 by default
+scripts/push-window.sh && echo allowed || echo held
+```
+
+While the window is active: the `.githooks/pre-push` hook refuses your own `git push` (setup sets `core.hooksPath` for this); the guard hook refuses agents' `git push` and GitHub-writing `gh` commands; and `/tapestry-run` keeps implementers building and committing locally, then stops with a list of held branches. Run `/tapestry-run <id>` again after the window closes and it pushes, opens the PRs, reviews and merges. Override once with `TAPESTRY_PUSH_NOW=1 git push`.
+
+The window controls when things reach GitHub, not the timestamps inside commits. Git records author and committer times when a commit is made, and GitHub shows them. If that matters to you, the times are the ones your machine had when you (or the agents) committed.
+
 ## 6. First feature
 
 ```

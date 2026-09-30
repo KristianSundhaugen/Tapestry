@@ -3,66 +3,224 @@
   "title": "Tapestry project configuration",
   "description": "Project profile read by Tapestry skills, agents and hooks. Edit with /tapestry-setup or by hand.",
   "type": "object",
-  "required": ["project", "commands", "pipeline", "git", "review"],
+  "required": [
+    "project",
+    "commands",
+    "pipeline",
+    "git",
+    "review"
+  ],
   "properties": {
     "project": {
       "type": "object",
-      "required": ["name", "baseBranch"],
+      "required": [
+        "name",
+        "baseBranch"
+      ],
       "properties": {
-        "name": { "type": "string", "description": "Short project name." },
-        "description": { "type": "string", "description": "One paragraph: what the project is and who it is for." },
-        "stack": { "type": "array", "items": { "type": "string" }, "description": "Languages, frameworks and infra, e.g. [\"typescript\", \"node\", \"postgres\"]." },
-        "baseBranch": { "type": "string", "default": "main", "description": "Branch that PRs target and worktrees branch from." },
-        "repo": { "type": "string", "description": "OWNER/REPO on GitHub. Leave empty to detect from origin." }
+        "name": {
+          "type": "string",
+          "description": "Short project name."
+        },
+        "description": {
+          "type": "string",
+          "description": "One paragraph: what the project is and who it is for."
+        },
+        "stack": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Languages, frameworks and infra, e.g. [\"typescript\", \"node\", \"postgres\"]."
+        },
+        "baseBranch": {
+          "type": "string",
+          "default": "main",
+          "description": "Branch that PRs target and worktrees branch from."
+        },
+        "repo": {
+          "type": "string",
+          "description": "OWNER/REPO on GitHub. Leave empty to detect from origin."
+        }
       }
     },
     "commands": {
       "type": "object",
       "description": "Shell commands agents run to prove work. Empty string = not available; agents skip it and say so.",
       "properties": {
-        "install": { "type": "string" },
-        "test": { "type": "string" },
-        "lint": { "type": "string" },
-        "typecheck": { "type": "string" },
-        "format": { "type": "string", "description": "Formatter run by the post-edit hook. Should accept a file path as the last argument." },
-        "build": { "type": "string" },
-        "e2e": { "type": "string" }
+        "install": {
+          "type": "string"
+        },
+        "test": {
+          "type": "string"
+        },
+        "lint": {
+          "type": "string"
+        },
+        "typecheck": {
+          "type": "string"
+        },
+        "format": {
+          "type": "string",
+          "description": "Formatter run by the post-edit hook. Should accept a file path as the last argument."
+        },
+        "build": {
+          "type": "string"
+        },
+        "e2e": {
+          "type": "string"
+        }
       }
     },
     "pipeline": {
       "type": "object",
       "properties": {
-        "maxParallelImplementers": { "type": "integer", "minimum": 1, "maximum": 10, "default": 3 },
-        "maxReviewRounds": { "type": "integer", "minimum": 1, "maximum": 10, "default": 3, "description": "Review -> fix -> re-review cycles per PR before a human is asked." },
-        "maxRebaseAttempts": { "type": "integer", "minimum": 0, "default": 2 },
-        "mergeStrategy": { "type": "string", "enum": ["squash", "merge", "rebase"], "default": "squash" },
-        "humanApprovesSpec": { "type": "boolean", "default": true },
-        "humanApprovesPlan": { "type": "boolean", "default": true },
-        "humanMergesPRs": { "type": "boolean", "default": false, "description": "true = orchestrator stops at 'approved'; a human merges. false = orchestrator merges approved PRs in wave order." },
-        "skipPipelineBelowLines": { "type": "integer", "default": 30, "description": "Heuristic: if the whole change is under this many lines, suggest doing it directly instead of running the pipeline." }
+        "maxParallelImplementers": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10,
+          "default": 3
+        },
+        "maxReviewRounds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10,
+          "default": 3,
+          "description": "Review -> fix -> re-review cycles per PR before a human is asked."
+        },
+        "maxRebaseAttempts": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 2
+        },
+        "mergeStrategy": {
+          "type": "string",
+          "enum": [
+            "squash",
+            "merge",
+            "rebase"
+          ],
+          "default": "squash"
+        },
+        "humanApprovesSpec": {
+          "type": "boolean",
+          "default": true
+        },
+        "humanApprovesPlan": {
+          "type": "boolean",
+          "default": true
+        },
+        "humanMergesPRs": {
+          "type": "boolean",
+          "default": false,
+          "description": "true = orchestrator stops at 'approved'; a human merges. false = orchestrator merges approved PRs in wave order."
+        },
+        "skipPipelineBelowLines": {
+          "type": "integer",
+          "default": 30,
+          "description": "Heuristic: if the whole change is under this many lines, suggest doing it directly instead of running the pipeline."
+        }
       }
     },
     "git": {
       "type": "object",
       "properties": {
-        "branchPrefix": { "type": "string", "default": "tapestry" },
-        "commitConvention": { "type": "string", "enum": ["conventional"], "default": "conventional" },
-        "protectedBranches": { "type": "array", "items": { "type": "string" } }
+        "branchPrefix": {
+          "type": "string",
+          "default": "tapestry"
+        },
+        "commitConvention": {
+          "type": "string",
+          "enum": [
+            "conventional"
+          ],
+          "default": "conventional"
+        },
+        "protectedBranches": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "pushWindow": {
+          "type": "object",
+          "description": "Hold all GitHub activity (push, PR create/merge/comment) during these hours. Usually set per person in .tapestry/config.local.json, not here.",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "holdFrom": {
+              "type": "string",
+              "pattern": "^[0-2][0-9]:[0-5][0-9]$",
+              "default": "08:00"
+            },
+            "holdUntil": {
+              "type": "string",
+              "pattern": "^[0-2][0-9]:[0-5][0-9]$",
+              "default": "16:00"
+            },
+            "days": {
+              "type": "array",
+              "items": {
+                "enum": [
+                  "Mon",
+                  "Tue",
+                  "Wed",
+                  "Thu",
+                  "Fri",
+                  "Sat",
+                  "Sun"
+                ]
+              },
+              "default": [
+                "Mon",
+                "Tue",
+                "Wed",
+                "Thu",
+                "Fri"
+              ]
+            }
+          }
+        }
       }
     },
     "review": {
       "type": "object",
       "properties": {
-        "scanners": { "type": "array", "items": { "type": "string", "enum": ["semgrep", "gitleaks", "trivy", "snyk"] } },
-        "ciReviewWorkflow": { "type": "boolean", "default": true },
-        "autoApplyFixes": { "type": "boolean", "default": true, "description": "Reviewer commits fixes to the PR branch. false = reviewer only posts patches as comments." },
-        "postSummaryComment": { "type": "boolean", "default": true }
+        "scanners": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "semgrep",
+              "gitleaks",
+              "trivy",
+              "snyk"
+            ]
+          }
+        },
+        "ciReviewWorkflow": {
+          "type": "boolean",
+          "default": true
+        },
+        "autoApplyFixes": {
+          "type": "boolean",
+          "default": true,
+          "description": "Reviewer commits fixes to the PR branch. false = reviewer only posts patches as comments."
+        },
+        "postSummaryComment": {
+          "type": "boolean",
+          "default": true
+        }
       }
     },
     "models": {
       "type": "object",
       "description": "Model alias per role: inherit | haiku | sonnet | opus | fable | full model id.",
-      "additionalProperties": { "type": "string" }
+      "additionalProperties": {
+        "type": "string"
+      }
     }
   }
 }

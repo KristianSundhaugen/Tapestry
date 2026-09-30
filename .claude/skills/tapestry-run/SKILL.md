@@ -70,6 +70,16 @@ When all tasks are `merged`: set `stage: merged`, ledger line `orchestrator  fea
 
 When stopping early (blocked, human merge, error): make sure the ledger is committed, then show the *Blocked / needs human* section verbatim.
 
+## Push window
+
+If the user has a personal push window (`git.pushWindow` in `.tapestry/config.local.json`; `scripts/push-window.sh` exits 1 while it is active), GitHub activity is held during those hours. Everything local keeps working: implementers and reviewers still write and commit code. Only pushes, PR creation, comments and merges wait.
+
+- Before dispatching and before merging, run `scripts/push-window.sh`. If it exits 1, say so once and continue only with work that does not need GitHub: implementers can still build and commit.
+- An agent report starting with `HELD: push window` is not a block. Record `branch` in the task frontmatter (leave `status: in_progress`, no `pr` yet), add `orchestrator  held  task NN on <branch> until the push window opens`, and do not put it in *Blocked / needs human*. A held reviewer round keeps the task `in_review` with a ledger note.
+- Your own ledger `git push` and `gh pr merge` are held too: commit the ledger locally and stop merging.
+- When nothing else can proceed locally, stop with: "Held by your push window until <holdUntil>. Work is committed locally on: <branches>. Run `/tapestry-run <id>` after <holdUntil> to push, open PRs, review and merge." Never bypass the window yourself.
+- On the next run, a task with `status: in_progress`, a `branch` and no `pr` gets the implementer prompt: "Your work for task `<NN>` was held by the push window and is committed on branch `<branch>`. Switch to it, rebase on `origin/<base>`, re-run the checks, push, open the PR, release the branch, report." A held reviewer round is re-dispatched with "push your fix commits and post the comment for round `<r>`; do not review again."
+
 ## Dry run
 
 With `--dry-run`, print the current wave, the tasks that would be dispatched, the prompts, and the merge order. Dispatch nothing and change nothing.
