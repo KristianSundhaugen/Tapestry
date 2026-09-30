@@ -5,6 +5,7 @@ tools: Read, Glob, Grep, Bash, Write, Edit
 model: inherit
 permissionMode: acceptEdits
 maxTurns: 40
+isolation: worktree
 color: purple
 ---
 

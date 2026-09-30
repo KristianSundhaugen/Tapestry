@@ -14,7 +14,8 @@ set -uo pipefail
 [ "${TAPESTRY_PUSH_NOW:-}" = "1" ] && exit 0
 
 PY=""
-for c in python3 python py; do
+case "$(uname -s 2>/dev/null)" in MINGW*|MSYS*|CYGWIN*) py_order="py python3 python" ;; *) py_order="python3 python py" ;; esac
+for c in $py_order; do
   if command -v "$c" >/dev/null 2>&1 && "$c" -c 'import json, sys' >/dev/null 2>&1; then PY="$c"; break; fi
 done
 

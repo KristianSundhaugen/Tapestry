@@ -5,7 +5,8 @@ set -uo pipefail
 # Find a Python that actually runs. On Windows, "python3"/"python" may be the
 # Microsoft Store stub, which exists on PATH but only prints an install hint.
 PY=""
-for c in python3 python py; do
+case "$(uname -s 2>/dev/null)" in MINGW*|MSYS*|CYGWIN*) py_order="py python3 python" ;; *) py_order="python3 python py" ;; esac
+for c in $py_order; do
   if command -v "$c" >/dev/null 2>&1 && "$c" -c 'import json, sys' >/dev/null 2>&1; then PY="$c"; break; fi
 done
 
@@ -27,6 +28,12 @@ else
     echo "           (tick 'Add to PATH'), or: winget install Python.Python.3.12 — then turn off the stubs in"
     echo "           Settings > Apps > Advanced app settings > App execution aliases."
   fi
+fi
+# Project commands in config.json run on Linux CI too, so they say `python`, not `py`.
+if [ "$PY" = "py" ] && ! python -c 'import sys' >/dev/null 2>&1; then
+  warn "'python' is not a working Python here (only the 'py' launcher is). Project commands like 'python -m pytest' will fail."
+  echo "           Fix: Settings > Apps > Advanced app settings > App execution aliases: turn off python.exe/python3.exe,"
+  echo "           and make sure Python's folder is on PATH (installer: Modify > Add Python to environment variables)."
 fi
 if command -v claude >/dev/null 2>&1; then ok "claude $(claude --version 2>/dev/null | head -n1)"; else miss "claude (Claude Code CLI): https://code.claude.com/docs/en/setup"; fi
 if command -v gh >/dev/null 2>&1; then
@@ -57,9 +64,17 @@ else
 fi
 
 echo "optional (reviewer scanners):"
-command -v semgrep  >/dev/null 2>&1 && ok "semgrep"  || warn "semgrep not installed  (pip install semgrep | brew install semgrep)"
-command -v gitleaks >/dev/null 2>&1 && ok "gitleaks" || warn "gitleaks not installed (brew install gitleaks | https://github.com/gitleaks/gitleaks/releases)"
-command -v trivy    >/dev/null 2>&1 && ok "trivy"    || warn "trivy not installed    (only needed for container/IaC projects)"
+case "$(uname -s 2>/dev/null)" in
+  MINGW*|MSYS*|CYGWIN*) hint_semgrep="py -m pip install semgrep"; hint_gitleaks="winget install Gitleaks.Gitleaks"; hint_trivy="winget install AquaSecurity.Trivy" ;;
+  Darwin*)              hint_semgrep="brew install semgrep";    hint_gitleaks="brew install gitleaks";           hint_trivy="brew install trivy" ;;
+  *)                    hint_semgrep="pipx install semgrep";    hint_gitleaks="https://github.com/gitleaks/gitleaks/releases"; hint_trivy="https://trivy.dev" ;;
+esac
+command -v semgrep  >/dev/null 2>&1 && ok "semgrep"  || warn "semgrep not installed  ($hint_semgrep)"
+command -v gitleaks >/dev/null 2>&1 && ok "gitleaks" || warn "gitleaks not installed ($hint_gitleaks)"
+command -v trivy    >/dev/null 2>&1 && ok "trivy"    || warn "trivy not installed    (only for container/IaC projects: $hint_trivy)"
+
+echo "test-run tracing:"
+if [ -f "$here/.tapestry/logs/.trace-on" ]; then ok "ON ($(wc -l < "$here/.tapestry/logs/trace.jsonl" 2>/dev/null | tr -d ' ' || echo 0) events); turn off with: bin/tapestry trace off"; else ok "off (for a test run: bin/tapestry trace on)"; fi
 
 echo "push window:"
 hp="$(git -C "$here" config --get core.hooksPath || true)"

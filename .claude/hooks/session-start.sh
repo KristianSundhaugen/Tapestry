@@ -8,7 +8,8 @@ set -uo pipefail
 # Find a Python that actually runs. On Windows, "python3"/"python" may be the
 # Microsoft Store stub, which exists on PATH but only prints an install hint.
 PY=""
-for c in python3 python py; do
+case "$(uname -s 2>/dev/null)" in MINGW*|MSYS*|CYGWIN*) py_order="py python3 python" ;; *) py_order="python3 python py" ;; esac
+for c in $py_order; do
   if command -v "$c" >/dev/null 2>&1 && "$c" -c 'import json, sys' >/dev/null 2>&1; then PY="$c"; break; fi
 done
 [ -z "$PY" ] && exit 0

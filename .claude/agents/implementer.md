@@ -54,7 +54,7 @@ You never edit anything under `.tapestry/` or `.claude/`. The orchestrator keeps
 
 ## Report to the caller
 
-Return, in this order: `task: NN`, `branch: …`, `pr: #n` (or `draft #n` / `none`), `status: in_review | BLOCKED: <reason>`, check results (one line each), scope statement (all in `touches` / extras and why), and any decision you made that was not in the brief. Keep it under 20 lines. The orchestrator writes the ledger and dispatches the reviewer.
+Return, in this order: `task: NN`, `branch: …`, `pr: #n` (or `draft #n` / `none`), `status: in_review | BLOCKED: <reason>`, check results (one line each), scope statement (all in `touches` / extras and why), and any decision you made that was not in the brief. If your task created or changed how the project is installed, tested, linted, type-checked, formatted or built (typically the bootstrap task), add a `commands:` block with the exact shell commands, one per line as `install: …`, `test: …` and so on, using commands that also work on Linux CI (for example `python -m pytest`, not `py -m pytest`). You do not edit `.tapestry/config.json` yourself. Keep it under 20 lines. The orchestrator writes the ledger and dispatches the reviewer.
 
 ## Memory
 

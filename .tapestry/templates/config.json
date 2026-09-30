@@ -1,0 +1,56 @@
+{
+  "$schema": "./config.schema.json",
+  "project": {
+    "name": "",
+    "description": "",
+    "stack": [],
+    "baseBranch": "main",
+    "repo": ""
+  },
+  "commands": {
+    "install": "",
+    "test": "",
+    "lint": "",
+    "typecheck": "",
+    "format": "",
+    "build": "",
+    "e2e": ""
+  },
+  "pipeline": {
+    "maxParallelImplementers": 3,
+    "maxReviewRounds": 3,
+    "maxRebaseAttempts": 2,
+    "mergeStrategy": "squash",
+    "humanApprovesSpec": true,
+    "humanApprovesPlan": true,
+    "humanMergesPRs": false,
+    "skipPipelineBelowLines": 30
+  },
+  "git": {
+    "branchPrefix": "tapestry",
+    "commitConvention": "conventional",
+    "protectedBranches": [
+      "main",
+      "master",
+      "develop"
+    ],
+    "pushWindow": {
+      "enabled": false
+    }
+  },
+  "review": {
+    "scanners": [
+      "semgrep",
+      "gitleaks"
+    ],
+    "ciReviewWorkflow": true,
+    "autoApplyFixes": true,
+    "postSummaryComment": true
+  },
+  "models": {
+    "planner": "inherit",
+    "implementer": "inherit",
+    "reviewer": "inherit",
+    "librarian": "inherit"
+  }
+}

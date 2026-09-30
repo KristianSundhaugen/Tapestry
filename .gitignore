@@ -5,6 +5,8 @@
 CLAUDE.local.md
 .tapestry/reviews/*.tmp
 .tapestry/config.local.json
+.tapestry/logs/
+.tapestry/test-runs/
 
 # OS / editors
 .DS_Store

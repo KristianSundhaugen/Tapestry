@@ -7,7 +7,7 @@ set -uo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 features="$here/.tapestry/features"
 
-field() { grep -m1 "^$2:" "$1" 2>/dev/null | sed "s/^$2:[[:space:]]*//; s/[[:space:]]*#.*$//"; }
+field() { grep -m1 "^$2:" "$1" 2>/dev/null | sed "s/^$2:[[:space:]]*//; s/[[:space:]][[:space:]]*#.*$//"; }
 
 if [ -z "${1:-}" ]; then
   printf '%-40s %-12s %s\n' "feature" "stage" "tasks (merged/total)"

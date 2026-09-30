@@ -33,7 +33,7 @@ For every task in the wave with status `todo` (or `blocked` that the user has ju
 
 > Implement Tapestry task `<NN>` of feature `<id>`. Your brief is `.tapestry/features/<id>/tasks/<file>`. Follow the implementer procedure: branch, test-first, implement within `touches`, prove, rebase, push, open the PR from the template, release the branch. Do not edit anything under `.tapestry/`. Report task id, branch, PR number, status, check results, scope statement, decisions.
 
-As each returns: record `branch`, `pr` and `status: in_review` in the task frontmatter and add `orchestrator  pr-opened  #<n> task NN <one-line summary>` to the ledger. If the report starts with `BLOCKED`, set `status: blocked`, copy the reason into *Blocked / needs human*, and continue with the others. Commit the ledger.
+As each returns: if the report has a `commands:` block, write those values into `commands` in `.tapestry/config.json` (you own `.tapestry/`) and log `orchestrator  commands-set  <keys>`; reviewers and CI use them from then on. Record `branch`, `pr` and `status: in_review` in the task frontmatter and add `orchestrator  pr-opened  #<n> task NN <one-line summary>` to the ledger. If the report starts with `BLOCKED`, set `status: blocked`, copy the reason into *Blocked / needs human*, and continue with the others. Commit the ledger.
 
 Tasks already `in_review` (from a previous run) skip straight to review.
 

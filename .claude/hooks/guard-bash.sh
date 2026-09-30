@@ -14,7 +14,8 @@ set -euo pipefail
 # Find a Python that actually runs. On Windows, "python3"/"python" may be the
 # Microsoft Store stub, which exists on PATH but only prints an install hint.
 PY=""
-for c in python3 python py; do
+case "$(uname -s 2>/dev/null)" in MINGW*|MSYS*|CYGWIN*) py_order="py python3 python" ;; *) py_order="python3 python py" ;; esac
+for c in $py_order; do
   if command -v "$c" >/dev/null 2>&1 && "$c" -c 'import json, sys' >/dev/null 2>&1; then PY="$c"; break; fi
 done
 
@@ -40,7 +41,17 @@ if [ -f "$config" ]; then
   protected="$("$PY" -c 'import json,sys; print(" ".join(json.load(open(sys.argv[1]))["git"].get("protectedBranches",["main","master","develop"])))' "$config" 2>/dev/null || echo "main master develop")"
 fi
 
+cwd="$(printf '%s' "$input" | "$PY" -c 'import json,sys; print(json.load(sys.stdin).get("cwd",""))' 2>/dev/null || true)"
+
 block() {
+  # When tracing is on (bin/tapestry trace on), record the block for the test-run report.
+  if [ -f "$project_dir/.tapestry/logs/.trace-on" ]; then
+    printf '%s' "$input" | "$PY" -c 'import datetime,json,os,sys
+d=json.load(sys.stdin)
+rec={"ts":datetime.datetime.now().astimezone().isoformat(timespec="seconds"),"event":"GuardBlock","agent":d.get("agent_type") or "main","agent_id":d.get("agent_id"),"reason":sys.argv[2],"command":sys.argv[3][:300],"cwd":d.get("cwd","")}
+fd=os.open(sys.argv[1],os.O_WRONLY|os.O_APPEND|os.O_CREAT,0o644); os.write(fd,(json.dumps(rec)+"\n").encode("utf-8")); os.close(fd)' \
+      "$project_dir/.tapestry/logs/trace.jsonl" "$1" "$cmd" 2>/dev/null || true
+  fi
   printf 'Tapestry guard: %s\n' "$1" >&2
   exit 2
 }
@@ -50,7 +61,6 @@ if printf '%s' "$cmd" | grep -Eq '(AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36}|sk-[A-Za
   block "the command contains something that looks like a real credential."
 fi
 
-cwd="$(printf '%s' "$input" | "$PY" -c 'import json,sys; print(json.load(sys.stdin).get("cwd",""))' 2>/dev/null || true)"
 
 # Personal push window: is GitHub activity held right now?
 window_msg=""

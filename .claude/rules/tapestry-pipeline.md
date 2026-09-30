@@ -40,7 +40,7 @@ Feature ids are `NNN-slug` with a zero-padded sequence (`001-short-links`). Task
 | Planner (agent) | `plan.md`, `tasks/*.md`, `progress.md` task board | code, `spec.md` |
 | Implementer (agent, worktree) | files in its task's `touches`, new test files | anything under `.tapestry/` or `.claude/`; the base branch; other tasks' files |
 | Reviewer (agent, worktree) | the PR branch (fix commits), its own `reviews/<task>-r<round>.md` | `progress.md`, task briefs, `spec.md`, `plan.md`, the base branch |
-| Librarian (agent) | `.tapestry/knowledge/*`, `.claude/rules/project/*`, the "Project notes" block of `CLAUDE.md`, `progress.md` (stage + event) | code, `spec.md`, `plan.md`, task briefs, reviews |
+| Librarian (agent, worktree) | `.tapestry/knowledge/*`, `.claude/rules/project/*`, the "Project notes" block of `CLAUDE.md`, `progress.md` (stage + event) | code, `spec.md`, `plan.md`, task briefs, reviews |
 
 Why the orchestrator owns the ledger: parallel branches that each append to `progress.md` conflict on every merge. Agents put events in their return message; the orchestrator writes them down on the base branch.
 

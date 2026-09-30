@@ -12,6 +12,8 @@
 #   bin/tapestry doctor                      environment check (no Claude session)
 #   bin/tapestry install                     run scripts/setup.sh (hooks, git config, doctor)
 #   bin/tapestry window                      is GitHub activity held right now? (push window)
+#   bin/tapestry trace on|off|status|clear   record every agent/tool event for a test run
+#   bin/tapestry report <id>                 write a PASS/FAIL test-run report for a feature
 #
 # On Windows, use bin\tapestry from PowerShell or cmd instead: it runs the PowerShell
 # twin bin\tapestry.ps1 (bin\tapestry.cmd is a shim for cmd.exe).
@@ -50,7 +52,9 @@ case "$cmd" in
   status)    exec "$here/scripts/tapestry-status.sh" ${args[@]+"${args[@]}"} ;;
   doctor)    exec "$here/scripts/tapestry-doctor.sh" ;;
   install)   exec "$here/scripts/setup.sh" ${args[@]+"${args[@]}"} ;;
+  trace)     exec "$here/scripts/tapestry-trace.sh" ${args[@]+"${args[@]}"} ;;
+  report)    exec "$here/scripts/tapestry-report.sh" ${args[@]+"${args[@]}"} ;;
   window)    if msg="$("$here/scripts/push-window.sh")"; then echo "GitHub activity allowed now."; else echo "HELD: $msg"; fi ;;
-  ""|-h|--help|help) sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//' ;;
+  ""|-h|--help|help) sed -n '2,22p' "$0" | sed 's/^# \{0,1\}//' ;;
   *) echo "unknown command: $cmd (try: bin/tapestry help)" >&2; exit 1 ;;
 esac

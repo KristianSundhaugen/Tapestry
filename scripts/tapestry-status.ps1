@@ -11,7 +11,7 @@ function Get-Field([string]$path, [string]$name) {
     if (-not (Test-Path -LiteralPath $path)) { return '' }
     $line = Select-String -LiteralPath $path -Pattern ("^" + [regex]::Escape($name) + ":") | Select-Object -First 1
     if (-not $line) { return '' }
-    return (($line.Line -replace ("^" + [regex]::Escape($name) + ":\s*"), '') -replace '\s*#.*$', '').Trim()
+    return (($line.Line -replace ("^" + [regex]::Escape($name) + ":\s*"), '') -replace '\s+#.*$', '').Trim()
 }
 
 if (-not $Feature) {

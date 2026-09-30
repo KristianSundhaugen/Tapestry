@@ -35,7 +35,12 @@ if [ "$target" != "$src" ]; then
     mkdir -p "$target/$item"
     (cd "$src/$item" && find . -type f) | while IFS= read -r f; do
       f="${f#./}"
-      case "$f" in features/*|worktrees/*|agent-memory-local/*|config.local.json|settings.local.json) continue ;; esac   # nothing personal or per-feature
+      # Nothing personal, per-feature or learned about THIS project; the target starts blank.
+      case "$item/$f" in
+        .tapestry/features/*|.tapestry/logs/*|.tapestry/test-runs/*|.tapestry/knowledge/*|.tapestry/config.json|.tapestry/config.local.json) continue ;;
+        .claude/worktrees/*|.claude/agent-memory/*|.claude/agent-memory-local/*|.claude/settings.local.json) continue ;;
+        .claude/rules/project/*) [ "$f" = "rules/project/README.md" ] || continue ;;
+      esac
       if [ -e "$target/$item/$f" ]; then
         echo "  skip $item/$f (exists)"
       else
@@ -45,17 +50,30 @@ if [ "$target" != "$src" ]; then
     done
     echo "  merged $item/"
   done
-  if [ -e "$target/REVIEW.md" ]; then echo "  skip REVIEW.md (exists)"; else cp "$src/REVIEW.md" "$target/REVIEW.md"; echo "  copied REVIEW.md"; fi
+  # Blank project profile and empty knowledge base for the new project.
+  if [ ! -f "$target/.tapestry/config.json" ]; then
+    cp "$src/.tapestry/templates/config.json" "$target/.tapestry/config.json"; echo "  created blank .tapestry/config.json"
+  fi
+  mkdir -p "$target/.tapestry/knowledge"
+  [ -f "$target/.tapestry/knowledge/README.md" ] || cp "$src/.tapestry/knowledge/README.md" "$target/.tapestry/knowledge/README.md"
+  for k in Architecture Decisions Conventions Gotchas Glossary; do
+    kf="$target/.tapestry/knowledge/$(printf '%s' "$k" | tr '[:upper:]' '[:lower:]').md"
+    [ -f "$kf" ] || printf '# %s\n\n_Empty. The librarian fills this after the first feature is merged (`/tapestry-learn`). You can also write here by hand._\n' "$k" > "$kf"
+  done
+  for file in REVIEW.md .gitattributes; do
+    if [ -e "$target/$file" ]; then echo "  skip $file (exists; make sure it pins *.sh and .githooks/* to eol=lf)"; else cp "$src/$file" "$target/$file"; echo "  copied $file"; fi
+  done
   if [ -f "$target/CLAUDE.md" ] && grep -q '<!-- Tapestry -->' "$target/CLAUDE.md"; then
     echo "  skip CLAUDE.md (Tapestry section present)"
   elif [ -f "$target/CLAUDE.md" ]; then
     echo "  CLAUDE.md exists; appending Tapestry section"
-    { echo; echo "<!-- Tapestry -->"; cat "$src/CLAUDE.md"; } >> "$target/CLAUDE.md"
+    { echo; echo "<!-- Tapestry -->"; sed '/^<!-- \/tapestry-setup writes/q' "$src/CLAUDE.md"; } >> "$target/CLAUDE.md"
   else
-    cp "$src/CLAUDE.md" "$target/CLAUDE.md"; echo "  copied CLAUDE.md"
+    # Everything up to the Project notes marker; the notes belong to the source project.
+    sed '/^<!-- \/tapestry-setup writes/q' "$src/CLAUDE.md" > "$target/CLAUDE.md"; echo "  copied CLAUDE.md"
   fi
   grep -q '^.claude/worktrees' "$target/.gitignore" 2>/dev/null || {
-    printf '\n# Tapestry\n.claude/worktrees/\n.claude/settings.local.json\n.claude/agent-memory-local/\nCLAUDE.local.md\n.tapestry/config.local.json\n' >> "$target/.gitignore"
+    printf '\n# Tapestry\n.claude/worktrees/\n.claude/settings.local.json\n.claude/agent-memory-local/\nCLAUDE.local.md\n.tapestry/config.local.json\n.tapestry/logs/\n.tapestry/test-runs/\n' >> "$target/.gitignore"
     echo "  updated .gitignore"
   }
 fi

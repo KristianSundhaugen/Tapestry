@@ -30,6 +30,16 @@ function Join-Many([string[]]$parts) {
     return $p
 }
 
+# CLAUDE.md up to the Project notes marker; the notes belong to the source project.
+function Get-TapestryClaudeMd([string]$from) {
+    $keep = @()
+    foreach ($line in (Get-Content -LiteralPath (Join-Path $from 'CLAUDE.md'))) {
+        $keep += $line
+        if ($line -like '<!-- /tapestry-setup writes*') { break }
+    }
+    return ($keep -join "`n")
+}
+
 if ($Into) {
     $target = (Resolve-Path -LiteralPath $Into -ErrorAction Stop).Path
     Write-Host "Installing Tapestry into $target"
@@ -44,7 +54,11 @@ if ($Into) {
         Get-ChildItem -LiteralPath $from -Recurse -File -Force | ForEach-Object {
             $rel = $_.FullName.Substring($from.Length).TrimStart('\', '/')
             # never copy feature folders or anything personal / machine-local
-            if ($rel -like 'features*' -or $rel -like 'worktrees*' -or $rel -like 'agent-memory-local*' -or $rel -eq 'config.local.json' -or $rel -eq 'settings.local.json') { return }
+            # Nothing personal, per-feature or learned about THIS project; the target starts blank.
+            $r = ($rel -replace '\\', '/')
+            if ($item -eq '.tapestry' -and ($r -like 'features/*' -or $r -like 'logs/*' -or $r -like 'test-runs/*' -or $r -like 'knowledge/*' -or $r -eq 'config.json' -or $r -eq 'config.local.json')) { return }
+            if ($item -eq '.claude' -and ($r -like 'worktrees/*' -or $r -like 'agent-memory/*' -or $r -like 'agent-memory-local/*' -or $r -eq 'settings.local.json')) { return }
+            if ($item -eq '.claude' -and $r -like 'rules/project/*' -and $r -ne 'rules/project/README.md') { return }
             $dest = Join-Path (Join-Path $target $item) $rel
             if (Test-Path -LiteralPath $dest) {
                 Write-Host "  skip $item\$rel (exists)"
@@ -54,6 +68,21 @@ if ($Into) {
             }
         }
         Write-Host "  merged $item\"
+    }
+
+    # Blank project profile and empty knowledge base for the new project.
+    $tcfg = Join-Many @($target, '.tapestry', 'config.json')
+    if (-not (Test-Path -LiteralPath $tcfg)) {
+        Copy-Item -LiteralPath (Join-Many @($src, '.tapestry', 'templates', 'config.json')) -Destination $tcfg
+        Write-Host '  created blank .tapestry\config.json'
+    }
+    $kdir = Join-Many @($target, '.tapestry', 'knowledge')
+    New-Item -ItemType Directory -Force -Path $kdir | Out-Null
+    $kreadme = Join-Path $kdir 'README.md'
+    if (-not (Test-Path -LiteralPath $kreadme)) { Copy-Item -LiteralPath (Join-Many @($src, '.tapestry', 'knowledge', 'README.md')) -Destination $kreadme }
+    foreach ($k in @('Architecture', 'Decisions', 'Conventions', 'Gotchas', 'Glossary')) {
+        $kf = Join-Path $kdir ($k.ToLower() + '.md')
+        if (-not (Test-Path -LiteralPath $kf)) { Set-Content -LiteralPath $kf -Value ("# $k`n`n_Empty. The librarian fills this after the first feature is merged (``/tapestry-learn``). You can also write here by hand._") }
     }
 
     foreach ($file in @('REVIEW.md', '.gitattributes')) {
@@ -66,17 +95,17 @@ if ($Into) {
     if ((Test-Path -LiteralPath $claudeMd) -and (Select-String -LiteralPath $claudeMd -SimpleMatch '<!-- Tapestry -->' -Quiet)) {
         Write-Host '  skip CLAUDE.md (Tapestry section present)'
     } elseif (Test-Path -LiteralPath $claudeMd) {
-        Add-Content -LiteralPath $claudeMd -Value ("`n<!-- Tapestry -->`n" + (Get-Content -Raw -LiteralPath (Join-Path $src 'CLAUDE.md')))
+        Add-Content -LiteralPath $claudeMd -Value ("`n<!-- Tapestry -->`n" + (Get-TapestryClaudeMd $src))
         Write-Host '  CLAUDE.md exists; appended Tapestry section'
     } else {
-        Copy-Item -LiteralPath (Join-Path $src 'CLAUDE.md') -Destination $claudeMd
+        Set-Content -LiteralPath $claudeMd -Value (Get-TapestryClaudeMd $src)
         Write-Host '  copied CLAUDE.md'
     }
 
     $gitignore = Join-Path $target '.gitignore'
     $hasEntry = (Test-Path -LiteralPath $gitignore) -and (Select-String -LiteralPath $gitignore -Pattern '^\.claude/worktrees' -Quiet)
     if (-not $hasEntry) {
-        Add-Content -LiteralPath $gitignore -Value "`n# Tapestry`n.claude/worktrees/`n.claude/settings.local.json`n.claude/agent-memory-local/`nCLAUDE.local.md`n.tapestry/config.local.json"
+        Add-Content -LiteralPath $gitignore -Value "`n# Tapestry`n.claude/worktrees/`n.claude/settings.local.json`n.claude/agent-memory-local/`nCLAUDE.local.md`n.tapestry/config.local.json`n.tapestry/logs/`n.tapestry/test-runs/"
         Write-Host '  updated .gitignore'
     }
 }

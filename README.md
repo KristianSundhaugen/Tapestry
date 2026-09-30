@@ -51,6 +51,8 @@ claude
 
 No Git Bash window needed; see [Windows](docs/SETUP.md#windows-windows-terminal--powershell).
 
+First time? Do the [test run](docs/TEST-RUN.md): a small weather API that exercises every stage and ends with a pass/fail report.
+
 Adding Tapestry to an existing repository: `scripts/setup.sh --into /path/to/repo` or `.\scripts\setup.ps1 -Into C:\path\to\repo`. Full instructions in [`docs/SETUP.md`](docs/SETUP.md).
 
 ## What is in the box
@@ -69,7 +71,7 @@ Adding Tapestry to an existing repository: `scripts/setup.sh --into /path/to/rep
 | `.tapestry/features/<id>/` | One folder per feature with all its artifacts |
 | `.github/workflows/tapestry-review.yml` | CI: your checks + gitleaks + semgrep, then Claude review comments on every PR |
 | `scripts/`, `bin/tapestry` | Setup, doctor, validation, status, and a CLI wrapper |
-| `docs/` | [Setup](docs/SETUP.md) · [Architecture](docs/ARCHITECTURE.md) · [Agents](docs/AGENTS.md) · [Tooling](docs/TOOLING.md) · [Walkthrough](docs/WALKTHROUGH.md) |
+| `docs/` | [Setup](docs/SETUP.md) · [Architecture](docs/ARCHITECTURE.md) · [Agents](docs/AGENTS.md) · [Tooling](docs/TOOLING.md) · [Walkthrough](docs/WALKTHROUGH.md) · [Test run](docs/TEST-RUN.md) |
 | `examples/url-shortener/` | Every artifact from one complete run |
 
 ## Requirements
