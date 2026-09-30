@@ -11,11 +11,22 @@
 # Reads the hook JSON on stdin; needs python3 (present wherever Claude Code runs).
 set -euo pipefail
 
-# Windows (Git Bash) often has only "python"; Linux/macOS have python3.
-PY="$(command -v python3 || command -v python || true)"
-[ -z "$PY" ] && exit 0
+# Find a Python that actually runs. On Windows, "python3"/"python" may be the
+# Microsoft Store stub, which exists on PATH but only prints an install hint.
+PY=""
+for c in python3 python py; do
+  if command -v "$c" >/dev/null 2>&1 && "$c" -c 'import json, sys' >/dev/null 2>&1; then PY="$c"; break; fi
+done
 
 input="$(cat)"
+if [ -z "$PY" ]; then
+  # No working Python: degrade to a raw-text check so force-pushes are still blocked.
+  if printf '%s' "$input" | grep -Eq 'git +push[^"]*( --force([ "]|$)| -f([ "]|$))'; then
+    printf 'Tapestry guard: plain --force push is not allowed (and no working Python was found, so other checks are off: run scripts/tapestry-doctor.sh).\n' >&2
+    exit 2
+  fi
+  exit 0
+fi
 cmd="$(printf '%s' "$input" | "$PY" -c 'import json,sys; print(json.load(sys.stdin).get("tool_input",{}).get("command",""))' 2>/dev/null || true)"
 [ -z "$cmd" ] && exit 0
 

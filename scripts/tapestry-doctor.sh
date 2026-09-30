@@ -2,9 +2,13 @@
 # Check the environment Tapestry needs. Never fails hard; prints OK / WARN / MISSING per item.
 set -uo pipefail
 
-# Windows (Git Bash) often has only "python"; Linux/macOS have python3.
-PY="$(command -v python3 || command -v python || true)"
-[ -z "$PY" ] && { echo "python3 or python is required" >&2; exit 1; }
+# Find a Python that actually runs. On Windows, "python3"/"python" may be the
+# Microsoft Store stub, which exists on PATH but only prints an install hint.
+PY=""
+for c in python3 python py; do
+  if command -v "$c" >/dev/null 2>&1 && "$c" -c 'import json, sys' >/dev/null 2>&1; then PY="$c"; break; fi
+done
+
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ok()   { printf '  OK       %s\n' "$1"; }
@@ -14,12 +18,21 @@ miss() { printf '  MISSING  %s\n' "$1"; }
 echo "Tapestry doctor"
 echo "required:"
 command -v git >/dev/null 2>&1 && ok "git $(git --version | awk '{print $3}')" || miss "git"
-command -v python3 >/dev/null 2>&1 && ok "python3 $(python3 --version 2>&1 | awk '{print $2}')" || miss "python3 (hooks and scripts need it)"
+if [ -n "$PY" ]; then
+  ok "python ($PY $("$PY" -c 'import platform; print(platform.python_version())'))"
+else
+  miss "a working Python 3 (hooks and scripts need it; without it the git guard hook only blocks force-pushes)"
+  if command -v python3 >/dev/null 2>&1 || command -v python >/dev/null 2>&1; then
+    echo "           'python'/'python3' on PATH is the Microsoft Store stub. Install Python from python.org"
+    echo "           (tick 'Add to PATH'), or: winget install Python.Python.3.12 — then turn off the stubs in"
+    echo "           Settings > Apps > Advanced app settings > App execution aliases."
+  fi
+fi
 if command -v claude >/dev/null 2>&1; then ok "claude $(claude --version 2>/dev/null | head -n1)"; else miss "claude (Claude Code CLI): https://code.claude.com/docs/en/setup"; fi
 if command -v gh >/dev/null 2>&1; then
   if gh auth status >/dev/null 2>&1; then ok "gh authenticated"; else warn "gh installed but not authenticated: run 'gh auth login'"; fi
 else
-  miss "gh (GitHub CLI): https://cli.github.com — implementers and reviewers open and merge PRs with it"
+  miss "gh (GitHub CLI) — implementers and reviewers open and merge PRs with it. Windows: winget install GitHub.cli; macOS: brew install gh; then gh auth login"
 fi
 
 echo "repository:"
@@ -34,7 +47,7 @@ else
 fi
 
 echo "config:"
-if [ -f "$here/.tapestry/config.json" ]; then
+if [ -f "$here/.tapestry/config.json" ] && [ -n "$PY" ]; then
   name="$("$PY" -c 'import json,sys; print(json.load(open(sys.argv[1]))["project"].get("name",""))' "$here/.tapestry/config.json" 2>/dev/null || true)"
   [ -n "$name" ] && ok "project '$name'" || warn ".tapestry/config.json not filled in: run /tapestry-setup"
   test_cmd="$("$PY" -c 'import json,sys; print(json.load(open(sys.argv[1]))["commands"].get("test",""))' "$here/.tapestry/config.json" 2>/dev/null || true)"

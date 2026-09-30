@@ -5,8 +5,12 @@
 # is blocked. Output becomes context for Claude.
 set -uo pipefail
 
-# Windows (Git Bash) often has only "python"; Linux/macOS have python3.
-PY="$(command -v python3 || command -v python || true)"
+# Find a Python that actually runs. On Windows, "python3"/"python" may be the
+# Microsoft Store stub, which exists on PATH but only prints an install hint.
+PY=""
+for c in python3 python py; do
+  if command -v "$c" >/dev/null 2>&1 && "$c" -c 'import json, sys' >/dev/null 2>&1; then PY="$c"; break; fi
+done
 [ -z "$PY" ] && exit 0
 
 project_dir="${CLAUDE_PROJECT_DIR:-$(pwd)}"

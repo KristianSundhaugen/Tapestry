@@ -99,7 +99,9 @@ Tapestry's own files are under `.claude/`, `.tapestry/templates/`, `scripts/`, `
 
 Tapestry works on Windows through Git Bash, which Claude Code needs anyway.
 
-- Install [Git for Windows](https://git-scm.com/download/win) (provides Git Bash), Python 3 from python.org (tick *Add to PATH*; the Microsoft Store stub does not count), and `gh` (`winget install GitHub.cli`, then `gh auth login`).
+- Install [Git for Windows](https://git-scm.com/download/win) (provides Git Bash), a real Python 3 (`winget install Python.Python.3.12`, or python.org with *Add to PATH* ticked), and `gh` (`winget install GitHub.cli`, then `gh auth login`). Open a new terminal afterwards so PATH updates.
+- If `scripts/tapestry-doctor.sh` says `python3` is the Microsoft Store stub, turn the stubs off: *Settings → Apps → Advanced app settings → App execution aliases*, switch off `python.exe` and `python3.exe`. The scripts also accept the `py` launcher that the python.org installer adds.
+- Commands like `unzip`, `mv` and `~` are Git Bash, not `cmd.exe`. In `cmd`/PowerShell, `tar -xf file.zip` extracts a zip.
 - Run `scripts/setup.sh` and `bin/tapestry` from Git Bash, not PowerShell. Hooks and scripts detect `python` when `python3` is absent.
 - Line endings: `.gitattributes` pins the scripts to LF. If you cloned before that file existed, run `git rm --cached -r . && git reset --hard` once in Git Bash.
 - Avoid putting the repository inside a OneDrive, Dropbox or iCloud folder. Git worktrees under `.claude/worktrees/` create and delete thousands of files during a run, and sync clients are known to corrupt `.git` while syncing them. If you must, exclude the folder from sync (OneDrive: *Settings → Sync and backup → Manage backup*, or right-click → *Free up space* is not enough; use *Choose folders* to deselect it) or set `worktree.baseRef` aside and run with `maxParallelImplementers: 1`.

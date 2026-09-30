@@ -4,8 +4,12 @@
 # Prints the new feature id on the last line.
 set -euo pipefail
 
-# Windows (Git Bash) often has only "python"; Linux/macOS have python3.
-PY="$(command -v python3 || command -v python || true)"
+# Find a Python that actually runs. On Windows, "python3"/"python" may be the
+# Microsoft Store stub, which exists on PATH but only prints an install hint.
+PY=""
+for c in python3 python py; do
+  if command -v "$c" >/dev/null 2>&1 && "$c" -c 'import json, sys' >/dev/null 2>&1; then PY="$c"; break; fi
+done
 [ -z "$PY" ] && { echo "python3 or python is required" >&2; exit 1; }
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
