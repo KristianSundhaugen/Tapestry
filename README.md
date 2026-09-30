@@ -26,7 +26,7 @@ Tapestry is built from what the Claude Code community has found to work, and fro
 
 ```bash
 git clone https://github.com/KristianSundhaugen/Tapestry.git my-project && cd my-project
-scripts/setup.sh          # checks git, gh, claude, python3; makes hooks executable
+bin/tapestry install      # checks git, gh, claude, python; sets up git hooks
 claude                    # start Claude Code
 ```
 
@@ -41,7 +41,17 @@ Then, inside Claude Code:
 /tapestry-learn 001-internal-url-shortener
 ```
 
-Adding Tapestry to an existing repository: `scripts/setup.sh --into /path/to/repo`. Full instructions in [`docs/SETUP.md`](docs/SETUP.md).
+On Windows, in Windows Terminal (PowerShell):
+
+```powershell
+git clone https://github.com/KristianSundhaugen/Tapestry.git my-project; cd my-project
+.\bin\tapestry install      # PowerShell setup: git hooks, environment check
+claude
+```
+
+No Git Bash window needed; see [Windows](docs/SETUP.md#windows-windows-terminal--powershell).
+
+Adding Tapestry to an existing repository: `scripts/setup.sh --into /path/to/repo` or `.\scripts\setup.ps1 -Into C:\path\to\repo`. Full instructions in [`docs/SETUP.md`](docs/SETUP.md).
 
 ## What is in the box
 
@@ -64,7 +74,7 @@ Adding Tapestry to an existing repository: `scripts/setup.sh --into /path/to/rep
 
 ## Requirements
 
-Claude Code (recent; the agent frontmatter uses `isolation: worktree` and `memory: project`), `git`, `python3` (hooks and scripts), and the [GitHub CLI](https://cli.github.com) authenticated with `gh auth login`. Optional: `semgrep`, `gitleaks` for the reviewer's scanners.
+Claude Code (recent; the agent frontmatter uses `isolation: worktree` and `memory: project`), `git` (on Windows: Git for Windows, whose bundled bash Claude Code uses to run hooks; you never open it yourself), Python 3 (hooks and scripts), and the [GitHub CLI](https://cli.github.com) authenticated with `gh auth login`. Optional: `semgrep`, `gitleaks` for the reviewer's scanners.
 
 ## License
 

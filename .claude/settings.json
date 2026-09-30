@@ -35,7 +35,37 @@
       "Bash(git ls-files*)",
       "Bash(git stash*)",
       "Bash(gh issue*)",
-      "Bash(gh repo view*)"
+      "Bash(gh repo view*)",
+      "PowerShell(git status*)",
+      "PowerShell(git log*)",
+      "PowerShell(git diff*)",
+      "PowerShell(git fetch*)",
+      "PowerShell(git add*)",
+      "PowerShell(git commit*)",
+      "PowerShell(git switch*)",
+      "PowerShell(git checkout -b*)",
+      "PowerShell(git rebase*)",
+      "PowerShell(git push -u origin*)",
+      "PowerShell(git push --force-with-lease*)",
+      "PowerShell(git push)",
+      "PowerShell(git worktree*)",
+      "PowerShell(gh pr*)",
+      "PowerShell(gh api*)",
+      "PowerShell(gh auth status*)",
+      "PowerShell(semgrep*)",
+      "PowerShell(gitleaks*)",
+      "PowerShell(trivy*)",
+      "PowerShell(git pull --ff-only*)",
+      "PowerShell(git push origin HEAD:*)",
+      "PowerShell(git rev-parse*)",
+      "PowerShell(git branch*)",
+      "PowerShell(git show*)",
+      "PowerShell(git ls-files*)",
+      "PowerShell(git stash*)",
+      "PowerShell(gh issue*)",
+      "PowerShell(gh repo view*)",
+      "PowerShell(./scripts/*.ps1*)",
+      "PowerShell(.\\scripts\\*.ps1*)"
     ],
     "deny": [
       "Read(.env)",
@@ -48,7 +78,12 @@
       "Bash(git clean -fd*)",
       "Bash(rm -rf /*)",
       "Bash(curl * | sh*)",
-      "Bash(curl * | bash*)"
+      "Bash(curl * | bash*)",
+      "PowerShell(git push --force *)",
+      "PowerShell(git push -f *)",
+      "PowerShell(git reset --hard*)",
+      "PowerShell(git clean -fd*)",
+      "PowerShell(Remove-Item -Recurse -Force C:\\*)"
     ]
   },
   "hooks": {
@@ -65,7 +100,7 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "Bash",
+        "matcher": "Bash|PowerShell",
         "hooks": [
           {
             "type": "command",

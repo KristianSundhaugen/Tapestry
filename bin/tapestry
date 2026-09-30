@@ -10,6 +10,11 @@
 #   bin/tapestry learn <id>                  stage 5
 #   bin/tapestry status [id]                 print status (no Claude session)
 #   bin/tapestry doctor                      environment check (no Claude session)
+#   bin/tapestry install                     run scripts/setup.sh (hooks, git config, doctor)
+#   bin/tapestry window                      is GitHub activity held right now? (push window)
+#
+# On Windows, use bin\tapestry from PowerShell or cmd instead: it runs the PowerShell
+# twin bin\tapestry.ps1 (bin\tapestry.cmd is a shim for cmd.exe).
 #
 # Add --headless to run non-interactively (claude -p) where that makes sense
 # (plan, run, review, learn). Interview and setup always need a human.
@@ -42,8 +47,10 @@ case "$cmd" in
   run)       launch "/tapestry-run ${args[*]:-}" ;;
   review)    launch "/tapestry-review ${args[*]:-}" ;;
   learn)     launch "/tapestry-learn ${args[*]:-}" ;;
-  status)    exec "$here/scripts/tapestry-status.sh" "${args[@]:-}" ;;
+  status)    exec "$here/scripts/tapestry-status.sh" ${args[@]+"${args[@]}"} ;;
   doctor)    exec "$here/scripts/tapestry-doctor.sh" ;;
-  ""|-h|--help|help) sed -n '2,15p' "$0" | sed 's/^# \{0,1\}//' ;;
+  install)   exec "$here/scripts/setup.sh" ${args[@]+"${args[@]}"} ;;
+  window)    if msg="$("$here/scripts/push-window.sh")"; then echo "GitHub activity allowed now."; else echo "HELD: $msg"; fi ;;
+  ""|-h|--help|help) sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//' ;;
   *) echo "unknown command: $cmd (try: bin/tapestry help)" >&2; exit 1 ;;
 esac

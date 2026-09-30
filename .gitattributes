@@ -5,3 +5,5 @@ bin/tapestry  text eol=lf
 *.json        text
 *.yml         text
 .githooks/*    text eol=lf
+*.cmd         text eol=crlf
+*.ps1         text eol=crlf

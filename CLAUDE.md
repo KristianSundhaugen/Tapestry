@@ -29,7 +29,8 @@ This repository uses **Tapestry**, a multi-agent development pipeline for Claude
 3. Nothing is "done" without the proof command output in the PR body.
 4. Reviewers work from a fresh context and cite `file:line` for every finding.
 5. Agents that cannot proceed write to the **Blocked / needs human** section of `progress.md` and stop. They do not guess.
-6. Small change (roughly under `pipeline.skipPipelineBelowLines` lines, one sentence to describe)? Skip the pipeline, do it directly on a branch, open a PR, run `/tapestry-review`.
+6. On Windows, run `scripts/*.sh` through the Bash tool (Git Bash); the `.ps1` twins are for the human's PowerShell terminal.
+7. Small change (roughly under `pipeline.skipPipelineBelowLines` lines, one sentence to describe)? Skip the pipeline, do it directly on a branch, open a PR, run `/tapestry-review`.
 
 ## Project notes
 

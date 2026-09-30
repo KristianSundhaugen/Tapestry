@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Tapestry PreToolUse hook for Bash.
+# Tapestry PreToolUse hook for Bash and PowerShell (matcher "Bash|PowerShell").
 # Blocks (exit 2) the small set of git operations that would break the pipeline's
 # invariants regardless of what an agent decides. Everything else passes through
 # to the normal permission flow (exit 0, no output).
@@ -65,6 +65,8 @@ hold() {
 while IFS= read -r seg; do
   seg="$(printf '%s' "$seg" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
   [ -z "$seg" ] && continue
+  # PowerShell tool spellings: "& git push", "git.exe push", "& 'C:\...\git.exe' push", "$env:X='1'" prefixes.
+  seg="$(printf '%s' "$seg" | "$PY" -c 'import re,sys; s=sys.stdin.read(); print(re.sub(r"""^&?\s*(["\x27]?)(?:[^"\x27]*[\\/])?(git|gh)(?:\.exe)?\1(?=\s|$)""", r"\2", s, count=1))')"
 
   # 0. GitHub-visible activity inside the push window.
   if [ -n "$window_msg" ]; then

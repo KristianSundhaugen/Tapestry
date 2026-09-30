@@ -85,8 +85,10 @@ To keep all GitHub activity (pushes, PRs, review comments, merges) out of certai
 
 ```bash
 cp .tapestry/config.local.example.json .tapestry/config.local.json   # holds Mon–Fri 08:00–16:00 by default
-scripts/push-window.sh && echo allowed || echo held
+bin/tapestry window                                                  # allowed / HELD
 ```
+
+On Windows from cmd: `copy .tapestry\config.local.example.json .tapestry\config.local.json` and `bin\tapestry window`.
 
 While the window is active: the `.githooks/pre-push` hook refuses your own `git push` (setup sets `core.hooksPath` for this); the guard hook refuses agents' `git push` and GitHub-writing `gh` commands; and `/tapestry-run` keeps implementers building and committing locally, then stops with a list of held branches. Run `/tapestry-run <id>` again after the window closes and it pushes, opens the PRs, reviews and merges. Override once with `TAPESTRY_PUSH_NOW=1 git push`.
 
@@ -108,17 +110,52 @@ The window controls when things reach GitHub, not the timestamps inside commits.
 
 Tapestry's own files are under `.claude/`, `.tapestry/templates/`, `scripts/`, `bin/`, `docs/`. Your project's state is under `.tapestry/config.json`, `.tapestry/knowledge/`, `.tapestry/features/`, `.claude/rules/project/`, `.claude/agent-memory/`. To upgrade, pull the framework files from the `tapestry` remote and review the diff; the state directories are never touched by an upgrade.
 
-## Windows notes
+## Windows (Windows Terminal + PowerShell)
 
-Tapestry works on Windows through Git Bash, which Claude Code needs anyway.
+Everything you type happens in a PowerShell tab in Windows Terminal. Every script you run by hand has a `.ps1` twin:
 
-- Install [Git for Windows](https://git-scm.com/download/win) (provides Git Bash), a real Python 3 (`winget install Python.Python.3.12`, or python.org with *Add to PATH* ticked), and `gh` (`winget install GitHub.cli`, then `gh auth login`). Open a new terminal afterwards so PATH updates.
-- If `scripts/tapestry-doctor.sh` says `python3` is the Microsoft Store stub, turn the stubs off: *Settings → Apps → Advanced app settings → App execution aliases*, switch off `python.exe` and `python3.exe`. The scripts also accept the `py` launcher that the python.org installer adds.
-- Commands like `unzip`, `mv` and `~` are Git Bash, not `cmd.exe`. In `cmd`/PowerShell, `tar -xf file.zip` extracts a zip.
-- Run `scripts/setup.sh` and `bin/tapestry` from Git Bash, not PowerShell. Hooks and scripts detect `python` when `python3` is absent.
-- Line endings: `.gitattributes` pins the scripts to LF. If you cloned before that file existed, run `git rm --cached -r . && git reset --hard` once in Git Bash.
-- Avoid putting the repository inside a OneDrive, Dropbox or iCloud folder. Git worktrees under `.claude/worktrees/` create and delete thousands of files during a run, and sync clients are known to corrupt `.git` while syncing them. If you must, exclude the folder from sync (OneDrive: *Settings → Sync and backup → Manage backup*, or right-click → *Free up space* is not enough; use *Choose folders* to deselect it) or set `worktree.baseRef` aside and run with `maxParallelImplementers: 1`.
-- `chmod +x` has no effect on NTFS; Git Bash runs the scripts by their shebang, so nothing else is needed.
+| Task | PowerShell | bash (macOS/Linux) |
+|------|------------|--------------------|
+| set up | `.\scripts\setup.ps1` | `scripts/setup.sh` |
+| add to another repo | `.\scripts\setup.ps1 -Into C:\path\to\repo` | `scripts/setup.sh --into /path` |
+| check environment | `.\scripts\tapestry-doctor.ps1` | `scripts/tapestry-doctor.sh` |
+| status | `.\scripts\tapestry-status.ps1 [id]` | `scripts/tapestry-status.sh [id]` |
+| push window now? | `.\scripts\push-window.ps1` | `scripts/push-window.sh` |
+| launcher (any of the above, plus Claude stages) | `.\bin\tapestry doctor`, `.\bin\tapestry run <id>` | `bin/tapestry doctor`, `bin/tapestry run <id>` |
+| extract a zip | `tar -xf file.zip` | `unzip file.zip` |
+
+From `cmd.exe`, or if PowerShell refuses to run scripts, `bin\tapestry.cmd <command>` runs the same PowerShell launcher with the execution policy bypassed for that one process.
+
+**Install once** (PowerShell, then open a new tab so PATH updates):
+
+```powershell
+winget install Git.Git                 # git itself; also provides the bash Claude Code runs hooks with
+winget install Python.Python.3.12      # hooks and scripts need a real Python
+winget install GitHub.cli ; gh auth login
+winget install Anthropic.ClaudeCode    # or: irm https://claude.ai/install.ps1 | iex
+winget install Gitleaks.Gitleaks       # optional, reviewer scanner
+pip install semgrep                    # optional, reviewer scanner
+```
+
+**Things specific to Windows:**
+
+- **You never open Git Bash.** Claude Code uses Git for Windows' bash in the background to run the hooks and the `scripts/*.sh` files, and git uses it to run `.githooks/pre-push`, whichever terminal you push from. It just has to be installed.
+- **Claude's PowerShell tool is guarded too.** The guard hook's matcher is `Bash|PowerShell`, and it recognises `& git push`, `git.exe push` and `& 'C:\...\git.exe' push`.
+- **Execution policy.** If PowerShell says running scripts is disabled, allow local scripts for your user once: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`. If a file came from a downloaded zip and is still refused, `Get-ChildItem -Recurse | Unblock-File` in the repo.
+- **Python Store stub.** If the doctor says `python` is the Microsoft Store stub, turn it off: *Settings → Apps → Advanced app settings → App execution aliases*, switch off `python.exe` and `python3.exe`.
+- **Line endings.** `.gitattributes` keeps `*.sh` and the git hooks LF (bash needs that) and `*.ps1` CRLF. If you cloned before it existed, commit or stash your work, then fix once with `git rm --cached -r . ; git reset --hard`.
+- **Push window.** `Copy-Item .tapestry\config.local.example.json .tapestry\config.local.json`. Override once: `$env:TAPESTRY_PUSH_NOW='1'; git push; Remove-Item Env:TAPESTRY_PUSH_NOW`.
+- **A Windows Terminal profile** that opens Claude Code in your project (Settings → Open JSON file → add to `profiles.list`; use `powershell.exe` instead of `pwsh.exe` if you don't have PowerShell 7):
+
+  ```jsonc
+  {
+      "name": "Tapestry",
+      "commandline": "pwsh.exe -NoLogo -NoExit -Command claude",
+      "startingDirectory": "C:\\path\\to\\your\\project",
+      "tabColor": "#7A9E7E"
+  }
+  ```
+- **OneDrive.** Avoid keeping the repository in a OneDrive, Dropbox or iCloud folder: worktrees under `.claude\worktrees\` create and delete many files during a run, and sync clients are known to corrupt `.git` while syncing. Prefer `C:\Users\<you>\Projects`, or exclude the folder from sync.
 
 ## Troubleshooting
 

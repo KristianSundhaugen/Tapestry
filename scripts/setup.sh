@@ -19,6 +19,7 @@ while [ $# -gt 0 ]; do
     --keep-examples) keep_examples=1; shift ;;
     -h|--help)
       sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    "") shift ;;
     *) echo "unknown option: $1" >&2; exit 1 ;;
   esac
 done
@@ -34,7 +35,7 @@ if [ "$target" != "$src" ]; then
     mkdir -p "$target/$item"
     (cd "$src/$item" && find . -type f) | while IFS= read -r f; do
       f="${f#./}"
-      case "$f" in features/*) continue ;; esac      # never copy feature folders
+      case "$f" in features/*|worktrees/*|agent-memory-local/*|config.local.json|settings.local.json) continue ;; esac   # nothing personal or per-feature
       if [ -e "$target/$item/$f" ]; then
         echo "  skip $item/$f (exists)"
       else
